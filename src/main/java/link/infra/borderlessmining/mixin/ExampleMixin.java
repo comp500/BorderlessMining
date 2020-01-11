@@ -26,6 +26,10 @@ public abstract class ExampleMixin {
 		info.cancel();
 		borderlessFullscreen = !borderlessFullscreen;
 		System.out.println("Setting borderless fullscreen to " + borderlessFullscreen);
+		// TODO: config system, initial properties:
+		// enableBorderlessFullscreen boolean
+		// addToVanillaOptionsMenu boolean (better name?)
+		// x/y/height/width and screen?
 	}
 
 	@Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
