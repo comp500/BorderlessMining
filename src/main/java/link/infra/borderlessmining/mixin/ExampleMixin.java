@@ -39,13 +39,4 @@ public abstract class ExampleMixin {
 	}
 
 	// TODO: windowBoundsHandler to remember the state of windowed mode? how do we use windowedX/Y/Height/Width?
-
-	// TODO: mapping changes:
-	// setFullscreen to swapBuffers
-	// flipFrame to swapWindowBuffers (RenderSystem)
-	// method_4485 to updateFullscreen
-	//     vsync as boolean param
-	// method_4479 to updateWindowRegion?
-	// method_4475 to applyVideoMode
-	// field_5177 to currentFullscreen?
 }
