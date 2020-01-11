@@ -1,29 +1,32 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "borderlessmining",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Borderless Mining",
+  "description": "A borderless fullscreen mod for 1.13 and newer versions of Minecraft.",
   "authors": [
-    "Me!"
+    "comp500"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://github.com/comp500/BorderlessMining",
+    "sources": "https://github.com/comp500/BorderlessMining"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "MIT",
+  "icon": "assets/borderlessmining/icon.png",
 
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
-    "main": [
-      "net.fabricmc.example.ExampleMod"
+    "client": [
+      "link.infra.borderlessmining.BorderlessMining"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    {
+      "config": "borderlessmining.mixins.json",
+      "environment": "client"
+    }
   ],
 
   "depends": {
@@ -31,7 +34,11 @@
     "fabric": "*",
     "minecraft": "1.15.x"
   },
-  "suggests": {
-    "flamingo": "*"
+  "conflicts": {
+    "optifabric": "*"
+  },
+  
+  "custom": {
+    "modmenu:clientsideOnly": true
   }
 }

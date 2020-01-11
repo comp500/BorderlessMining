@@ -1,8 +1,8 @@
-package net.fabricmc.example;
+package link.infra.borderlessmining;
 
-import net.fabricmc.api.ModInitializer;
+import net.fabricmc.api.ClientModInitializer;
 
-public class ExampleMod implements ModInitializer {
+public class BorderlessMining implements ClientModInitializer {
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
