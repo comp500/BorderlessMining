@@ -5,8 +5,9 @@
   "mixins": [
   ],
   "client": [
-    "ExampleMixin",
-    "FullScreenOptionMixin"
+    "WindowMixin",
+    "FullScreenOptionMixin",
+    "WindowSettingsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

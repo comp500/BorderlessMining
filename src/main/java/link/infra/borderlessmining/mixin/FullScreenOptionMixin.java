@@ -1,5 +1,6 @@
 package link.infra.borderlessmining.mixin;
 
+import link.infra.borderlessmining.config.WIPConfig;
 import net.minecraft.client.options.DoubleOption;
 import net.minecraft.client.options.FullScreenOption;
 import net.minecraft.client.options.GameOptions;
@@ -16,11 +17,14 @@ import java.util.function.Function;
 
 @Mixin(FullScreenOption.class)
 public abstract class FullScreenOptionMixin {
-	private static boolean borderlessFullscreenTest = true;
-
 	// Modify the superconstructor call in FullScreenOption to add an extra option for Borderless Fullscreen
 	@ModifyArgs(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/options/DoubleOption;<init>(Ljava/lang/String;DDFLjava/util/function/Function;Ljava/util/function/BiConsumer;Ljava/util/function/BiFunction;)V"), method = "<init>(Lnet/minecraft/client/util/Window;Lnet/minecraft/client/util/Monitor;)V")
 	private static void modifyDoubleOption(Args args, Window window, Monitor monitor) {
+		if (!WIPConfig.optionEnabled) {
+			return;
+		}
+		WIPConfig.pendingEnabled = WIPConfig.enabled;
+
 		// Add one extra option at the end for Borderless Fullscreen
 		double max = args.<Double>get(2) + 1.0;
 		args.set(2, max);
@@ -31,18 +35,19 @@ public abstract class FullScreenOptionMixin {
 		BiFunction<GameOptions, DoubleOption, String> desc = args.get(6);
 
 		args.set(4, (Function<GameOptions, Double>) (opts) -> {
-			if (borderlessFullscreenTest) {
+			if (WIPConfig.pendingEnabled) {
 				return max;
 			}
 			return getter.apply(opts);
 		});
 		args.set(5, (BiConsumer<GameOptions, Double>) (opts, val) -> {
 			if (val == max) {
-				borderlessFullscreenTest = true;
+				System.out.println("Pending enabled!!");
+				WIPConfig.pendingEnabled = true;
 				// Set the actual value to "Current"
 				setter.accept(opts, -1.0);
 			} else {
-				borderlessFullscreenTest = false;
+				WIPConfig.pendingEnabled = false;
 				setter.accept(opts, val);
 			}
 		});
