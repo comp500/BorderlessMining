@@ -1,0 +1,11 @@
+{
+  "text.borderlessmining.videomodename": "Borderless Windowed",
+  "config.borderlessmining.title": "Borderless Mining Configuration",
+  "config.borderlessmining.general": "General",
+  "config.borderlessmining.general.enabled": "Enabled",
+  "config.borderlessmining.general.enabled.tooltip_1": "Switches to a borderless fullscreen",
+  "config.borderlessmining.general.enabled.tooltip_2": "window when Fullscreen is turned on",
+  "config.borderlessmining.general.videomodeoption": "Video Mode option",
+  "config.borderlessmining.general.videomodeoption.tooltip_1": "Adds an option to the Video Mode",
+  "config.borderlessmining.general.videomodeoption.tooltip_2": "slider that enables the mod"
+}

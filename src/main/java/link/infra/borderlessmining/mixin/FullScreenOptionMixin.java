@@ -4,6 +4,7 @@ import link.infra.borderlessmining.config.WIPConfig;
 import net.minecraft.client.options.DoubleOption;
 import net.minecraft.client.options.FullScreenOption;
 import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.Monitor;
 import net.minecraft.client.util.Window;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,11 +27,11 @@ public abstract class FullScreenOptionMixin {
 		// Reset the pending value (this means that all changes that require checking pendingEnabled must be done before changing window props, as that resets the options menu)
 		WIPConfig.pendingEnabled = WIPConfig.enabled;
 
-		// Add one extra option at the end for Borderless Fullscreen
+		// Add one extra option at the end for Borderless Windowed
 		double max = args.<Double>get(2) + 1.0;
 		args.set(2, max);
 
-		// Modify the getter/setters to modify Borderless Fullscreen settings when the last option is set
+		// Modify the getter/setters to modify Borderless Windowed settings when the last option is set
 		Function<GameOptions, Double> getter = args.get(4);
 		BiConsumer<GameOptions, Double> setter = args.get(5);
 		BiFunction<GameOptions, DoubleOption, String> desc = args.get(6);
@@ -53,8 +54,7 @@ public abstract class FullScreenOptionMixin {
 		});
 		args.set(6, (BiFunction<GameOptions, DoubleOption, String>) (opts, val) -> {
 			if (val.get(opts) == max) {
-				// TODO: i18n
-				return "Borderless Fullscreen";
+				return I18n.translate("text.borderlessmining.videomodename");
 			}
 			return desc.apply(opts, val);
 		});

@@ -4,13 +4,14 @@
   "version": "${version}",
 
   "name": "Borderless Mining",
-  "description": "A borderless fullscreen mod for 1.13 and newer versions of Minecraft.",
+  "description": "A windowed borderless (fullscreen) mod for 1.13 and newer versions of Minecraft.",
   "authors": [
     "comp500"
   ],
   "contact": {
     "homepage": "https://github.com/comp500/BorderlessMining",
-    "sources": "https://github.com/comp500/BorderlessMining"
+    "sources": "https://github.com/comp500/BorderlessMining",
+    "issues": "https://github.com/comp500/BorderlessMining/issues"
   },
 
   "license": "MIT",
@@ -20,6 +21,9 @@
   "entrypoints": {
     "client": [
       "link.infra.borderlessmining.BorderlessMining"
+    ],
+    "modmenu" : [
+      "link.infra.borderlessmining.config.ModMenuCompat"
     ]
   },
   "mixins": [
