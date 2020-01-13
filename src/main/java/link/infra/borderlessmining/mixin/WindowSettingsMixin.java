@@ -18,7 +18,7 @@ public abstract class WindowSettingsMixin implements SettingBorderlessFullscreen
 	@Shadow
 	@Final
 	@Mutable
-	private boolean fullscreen;
+	public boolean fullscreen;
 
 	private boolean borderlessFullscreen;
 
@@ -27,6 +27,7 @@ public abstract class WindowSettingsMixin implements SettingBorderlessFullscreen
 		return borderlessFullscreen;
 	}
 
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	@Inject(at = @At("RETURN"), method = "<init>")
 	private void modifyInitialSettings(int width, int height, OptionalInt fullscreenWidth, OptionalInt fullscreenHeight, boolean fullscreen, CallbackInfo info) {
 		// If the mod is enabled, set the fullscreen value (from run arguments) to false

@@ -23,7 +23,7 @@ public abstract class FullScreenOptionMixin {
 		if (!WIPConfig.optionEnabled) {
 			return;
 		}
-		System.out.println("FullScreenOptionMixin start");
+		// Reset the pending value (this means that all changes that require checking pendingEnabled must be done before changing window props, as that resets the options menu)
 		WIPConfig.pendingEnabled = WIPConfig.enabled;
 
 		// Add one extra option at the end for Borderless Fullscreen
@@ -43,12 +43,10 @@ public abstract class FullScreenOptionMixin {
 		});
 		args.set(5, (BiConsumer<GameOptions, Double>) (opts, val) -> {
 			if (val == max) {
-				System.out.println("Pending enabled!!");
 				WIPConfig.pendingEnabled = true;
 				// Set the actual value to "Current"
 				setter.accept(opts, -1.0);
 			} else {
-				System.out.println("Pending disabled");
 				WIPConfig.pendingEnabled = false;
 				setter.accept(opts, val);
 			}
@@ -60,6 +58,5 @@ public abstract class FullScreenOptionMixin {
 			}
 			return desc.apply(opts, val);
 		});
-		// TODO: apply borderlessfullscreen when invalidating dirty video modes
 	}
 }

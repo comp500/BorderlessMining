@@ -13,10 +13,6 @@ public class WindowResolutionChangeWrapper implements WindowEventHandler {
 		this.child = child;
 	}
 
-	public boolean isEnabled() {
-		return enabled;
-	}
-
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
