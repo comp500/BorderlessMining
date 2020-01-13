@@ -3,7 +3,9 @@ package link.infra.borderlessmining.mixin;
 import link.infra.borderlessmining.config.WIPConfig;
 import link.infra.borderlessmining.util.SettingBorderlessFullscreen;
 import net.minecraft.client.WindowSettings;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -14,6 +16,8 @@ import java.util.OptionalInt;
 @Mixin(WindowSettings.class)
 public abstract class WindowSettingsMixin implements SettingBorderlessFullscreen {
 	@Shadow
+	@Final
+	@Mutable
 	private boolean fullscreen;
 
 	private boolean borderlessFullscreen;

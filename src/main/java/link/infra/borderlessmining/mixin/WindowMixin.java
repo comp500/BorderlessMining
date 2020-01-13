@@ -5,6 +5,7 @@ import link.infra.borderlessmining.config.WIPConfig;
 import link.infra.borderlessmining.util.WindowBoundsHolder;
 import link.infra.borderlessmining.util.WindowBoundsGetter;
 import link.infra.borderlessmining.util.SettingBorderlessFullscreen;
+import link.infra.borderlessmining.util.WindowResolutionChangeWrapper;
 import net.minecraft.client.WindowEventHandler;
 import net.minecraft.client.WindowSettings;
 import net.minecraft.client.util.MonitorTracker;
@@ -33,6 +34,11 @@ public abstract class WindowMixin implements WindowBoundsGetter {
 	@Final
 	@Mutable
 	private WindowEventHandler eventHandler;
+	@Shadow
+	private boolean videoModeDirty;
+
+	// TODO: move from here if it's not used elsewhere
+	private WindowResolutionChangeWrapper eventHandlerWrapper;
 
 	@Accessor("x")
 	public abstract void setX(int x);
@@ -45,7 +51,6 @@ public abstract class WindowMixin implements WindowBoundsGetter {
 
 	private boolean borderlessFullscreen = false;
 	private WindowBoundsHolder previousBounds = null;
-	private boolean initialSettingBorderless = false;
 
 	private void setBorderlessFullscreen(boolean newValue) {
 		System.out.println("Setting borderless fullscreen to " + newValue);
@@ -75,23 +80,11 @@ public abstract class WindowMixin implements WindowBoundsGetter {
 	@Inject(at = @At("RETURN"), method = "<init>")
 	private void onConstruction(WindowEventHandler prevEventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo info) {
 		// Stop onResolutionChanged from being triggered if borderless is being set in the constructor
-		this.eventHandler = new WindowEventHandler() {
-			@Override
-			public void onWindowFocusChanged(boolean focused) {
-				prevEventHandler.onWindowFocusChanged(focused);
-			}
-
-			@Override
-			public void onResolutionChanged() {
-				if (!initialSettingBorderless) {
-					prevEventHandler.onResolutionChanged();
-				}
-			}
-		};
+		this.eventHandler = eventHandlerWrapper = new WindowResolutionChangeWrapper(prevEventHandler);
 		if (((SettingBorderlessFullscreen) settings).isBorderlessFullscreen()) {
-			initialSettingBorderless = true;
+			eventHandlerWrapper.setEnabled(false);
 			setBorderlessFullscreen(true);
-			initialSettingBorderless = false;
+			eventHandlerWrapper.setEnabled(true);
 		}
 	}
 
@@ -100,14 +93,19 @@ public abstract class WindowMixin implements WindowBoundsGetter {
 	@Inject(method = "toggleFullscreen", at = @At("HEAD"), cancellable = true)
 	public void onToggleFullscreen(CallbackInfo info) {
 		if (!WIPConfig.enabled) {
+			System.out.println("toggling: disabled");
 			// If disabled -> enabled and in fullscreen, take out of exclusive fullscreen
 			if (WIPConfig.pendingEnabled) {
+				WIPConfig.enabled = true;
+				System.out.println("toggling: disabled -> enabled");
+				System.out.println("toggling: fullscreen = " + fullscreen);
+				System.out.println("toggling: bFullscreen = " + borderlessFullscreen);
 				borderlessFullscreen = fullscreen;
 				if (fullscreen) {
+					System.out.println("toggling: disabling fullscreen, swapping buffers");
 					fullscreen = false;
 					swapBuffers();
 				}
-				WIPConfig.enabled = true;
 			} else {
 				borderlessFullscreen = false;
 				return;
@@ -115,13 +113,18 @@ public abstract class WindowMixin implements WindowBoundsGetter {
 		}
 		// If enabled -> disabled, take out of borderless fullscreen
 		if (!WIPConfig.pendingEnabled) {
+			WIPConfig.enabled = false;
+			System.out.println("toggling: enabled -> disabled");
+			System.out.println("toggling: fullscreen = " + fullscreen);
+			System.out.println("toggling: bFullscreen = " + borderlessFullscreen);
 			fullscreen = !borderlessFullscreen;
+			System.out.println("toggling: disabling bFullscreen");
 			setBorderlessFullscreen(false);
 			if (fullscreen) {
+				System.out.println("toggling: swapping buffers");
 				swapBuffers();
 			}
 			info.cancel();
-			WIPConfig.enabled = false;
 			return;
 		}
 		fullscreen = false;
@@ -140,20 +143,31 @@ public abstract class WindowMixin implements WindowBoundsGetter {
 		cir.setReturnValue(borderlessFullscreen);
 	}
 
-	@Inject(method = "applyVideoMode", at = @At("RETURN"))
+	@Inject(method = "applyVideoMode", at = @At("HEAD"))
 	private void onApplyVideoMode(CallbackInfo info) {
+		System.out.println("applying: " + WIPConfig.enabled + " enabled, " + WIPConfig.pendingEnabled + " pending");
 		if (WIPConfig.pendingEnabled != WIPConfig.enabled) {
 			System.out.println("Pending " + WIPConfig.pendingEnabled);
+			// Update enabled state, applying changes if they need to be done
 			if (WIPConfig.pendingEnabled && fullscreen) {
+				// This must be done before changing window mode/pos/size as changing those restarts FullScreenOptionMixin
+				WIPConfig.enabled = true;
+				System.out.println("applying: disabling fullscreen, swapping buffers");
 				fullscreen = false;
 				swapBuffers();
+				System.out.println("applying: enabling bFullscreen");
 				setBorderlessFullscreen(true);
+				videoModeDirty = false;
 			} else if (!WIPConfig.pendingEnabled && borderlessFullscreen) {
+				WIPConfig.enabled = false;
+				System.out.println("applying: disabling bFullscreen, setting fullscreen to true");
 				setBorderlessFullscreen(false);
 				fullscreen = true;
+				swapBuffers();
+				videoModeDirty = false;
+			} else {
+				WIPConfig.enabled = WIPConfig.pendingEnabled;
 			}
-			// Update fullscreen value
-			WIPConfig.enabled = WIPConfig.pendingEnabled;
 		}
 	}
 }

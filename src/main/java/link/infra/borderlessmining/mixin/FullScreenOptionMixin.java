@@ -23,6 +23,7 @@ public abstract class FullScreenOptionMixin {
 		if (!WIPConfig.optionEnabled) {
 			return;
 		}
+		System.out.println("FullScreenOptionMixin start");
 		WIPConfig.pendingEnabled = WIPConfig.enabled;
 
 		// Add one extra option at the end for Borderless Fullscreen
@@ -47,6 +48,7 @@ public abstract class FullScreenOptionMixin {
 				// Set the actual value to "Current"
 				setter.accept(opts, -1.0);
 			} else {
+				System.out.println("Pending disabled");
 				WIPConfig.pendingEnabled = false;
 				setter.accept(opts, val);
 			}
