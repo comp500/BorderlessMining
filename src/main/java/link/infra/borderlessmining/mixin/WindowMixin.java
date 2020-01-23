@@ -103,8 +103,6 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 
 	@Shadow public abstract void swapBuffers();
 
-	@Shadow private boolean currentFullscreen;
-
 	@Inject(method = "toggleFullscreen", at = @At("HEAD"), cancellable = true)
 	public void onToggleFullscreen(CallbackInfo info) {
 		if (WIPConfig.getInstance().isEnabledDirty()) {
@@ -112,35 +110,6 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 			info.cancel();
 			return;
 		}
-//		if (!WIPConfig.getInstance().enabled) {
-//			// If disabled -> enabled and in fullscreen, take out of exclusive fullscreen
-//			if (WIPConfig.getInstance().pendingEnabled) {
-//				WIPConfig.getInstance().enabled = true;
-//				// Set to previous value (will be toggled later)
-//				borderlessFullscreen = fullscreen;
-//				if (fullscreen) {
-//					// Disable exclusive fullscreen
-//					fullscreen = false;
-//					swapBuffers();
-//				}
-//			} else {
-//				borderlessFullscreen = false;
-//				return;
-//			}
-//		}
-//		// If enabled -> disabled, take out of borderless fullscreen
-//		if (!WIPConfig.getInstance().pendingEnabled) {
-//			WIPConfig.getInstance().enabled = false;
-//			// Set to new value
-//			fullscreen = !borderlessFullscreen;
-//			borderlessmining_setBorderlessFullscreen(false);
-//			if (fullscreen) {
-//				// Enable exclusive fullscreen (this will probably happen later anyway but this works)
-//				swapBuffers();
-//			}
-//			info.cancel();
-//			return;
-//		}
 		if (WIPConfig.getInstance().enabled) {
 			fullscreen = false;
 			info.cancel();
@@ -150,16 +119,8 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 
 	@Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
 	public void onIsFullscreen(CallbackInfoReturnable<Boolean> cir) {
-//		// If BM is enabled, return borderlessFullscreen, otherwise defer to normal isFullscreen
-//		if (!WIPConfig.getInstance().enabled) {
-//			borderlessFullscreen = false;
-//			return;
-//		}
-//		// TODO: on config changes (not from FullscreenOptionMixin), go in/out of fullscreen?
-//		// TODO: check f11 with fullscreen: on/off setting
-//		fullscreen = false;
-//		cir.setReturnValue(borderlessFullscreen);
-		//if (WIPConfig.getInstance().isEnabledOrPending()) {
+		// TODO: check f11 with fullscreen: on/off setting
+		// If BM is enabled, return borderlessFullscreen, otherwise defer to normal isFullscreen
 		if (WIPConfig.getInstance().enabled) {
 			cir.setReturnValue(borderlessFullscreen);
 		}
@@ -172,31 +133,6 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 			// Ensure that the video mode isn't changed later - updateEnabledState has already done this
 			videoModeDirty = false;
 		}
-//		if (WIPConfig.getInstance().pendingEnabled != WIPConfig.getInstance().enabled) {
-//			// Update enabled state, applying changes if they need to be done
-//			if (WIPConfig.getInstance().pendingEnabled && fullscreen) {
-//				// This must be done before changing window mode/pos/size as changing those restarts FullScreenOptionMixin
-//				WIPConfig.getInstance().enabled = true;
-//				// Disable exclusive fullscreen, swap buffers to apply immediately
-//				fullscreen = false;
-//				swapBuffers();
-//				// Put into borderless fullscreen, and ensure that the video mode isn't changed later - swapBuffers has already done this
-//				borderlessmining_setBorderlessFullscreen(true);
-//				videoModeDirty = false;
-//			} else if (!WIPConfig.getInstance().pendingEnabled && borderlessFullscreen) {
-//				WIPConfig.getInstance().enabled = false;
-//				// Take out of borderless fullscreen
-//				borderlessmining_setBorderlessFullscreen(false);
-//				// Enable exclusive fullscreen, swap buffers to apply immediately (probably not needed)
-//				fullscreen = true;
-//				swapBuffers();
-//				// Ensure that the video mode isn't changed later - swapBuffers has already done this
-//				videoModeDirty = false;
-//			} else {
-//				// Just update the state
-//				WIPConfig.getInstance().enabled = WIPConfig.getInstance().pendingEnabled;
-//			}
-//		}
 	}
 
 	/**
