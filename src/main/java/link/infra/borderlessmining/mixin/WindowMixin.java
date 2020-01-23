@@ -5,8 +5,12 @@ import link.infra.borderlessmining.config.WIPConfig;
 import link.infra.borderlessmining.util.*;
 import net.minecraft.client.WindowEventHandler;
 import net.minecraft.client.WindowSettings;
+import net.minecraft.client.util.Monitor;
 import net.minecraft.client.util.MonitorTracker;
+import net.minecraft.client.util.VideoMode;
 import net.minecraft.client.util.Window;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,27 +45,45 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 	@Shadow
 	private boolean videoModeDirty;
 
+	@Shadow
+	@Final
+	private MonitorTracker monitorTracker;
+
 	private boolean borderlessFullscreen = false;
 	private WindowBoundsHolder previousBounds = null;
+	private static final Logger LOGGER = LogManager.getLogger(WindowMixin.class);
 
-	private void borderlessmining_setBorderlessFullscreen(boolean newValue) {
+	/**
+	 * Enables and disables borderless fullscreen, assuming the current state is windowed
+	 * @param newValue The new state of borderless fullscreen to set
+	 * @return True if it was successful, false otherwise
+	 */
+	private boolean borderlessmining_setBorderlessFullscreen(boolean newValue) {
 		RenderSystem.assertThread(RenderSystem::isInInitPhase);
 		if (borderlessFullscreen != newValue) {
 			borderlessFullscreen = newValue;
 			if (newValue) {
 				// Store previous bounds
 				previousBounds = new WindowBoundsHolder(this);
-				// TODO: get/set new bounds
-				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, 0);
-				GLFW.glfwSetWindowPos(handle, 100, 100);
-				GLFW.glfwSetWindowSize(handle, 1300, 500);
+				// TODO: make this configurable, so you can specify monitor/bounds
+				Monitor monitor = this.monitorTracker.getMonitor((Window) (Object) this);
+				if (monitor == null) {
+					LOGGER.warn("Failed to get a valid monitor for determining fullscreen size!");
+					borderlessFullscreen = false;
+					return false;
+				}
+				VideoMode mode = monitor.getCurrentVideoMode();
+				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
+				GLFW.glfwSetWindowPos(handle, monitor.getViewportX(), monitor.getViewportY());
+				GLFW.glfwSetWindowSize(handle, mode.getWidth(), mode.getHeight());
 			} else if (previousBounds != null) {
 				// Reset to previous bounds
-				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, 1);
+				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, GLFW.GLFW_TRUE);
 				GLFW.glfwSetWindowPos(handle, previousBounds.getX(), previousBounds.getY());
 				GLFW.glfwSetWindowSize(handle, previousBounds.getWidth(), previousBounds.getHeight());
 			}
 		}
+		return true;
 	}
 
 	@Inject(at = @At("RETURN"), method = "<init>")
@@ -73,6 +95,7 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 			if (((SettingBorderlessFullscreen) settings).isBorderlessFullscreen()) {
 				eventHandlerWrapper.setEnabled(false);
 				borderlessmining_setBorderlessFullscreen(true);
+				// Don't do anything if it fails!
 				eventHandlerWrapper.setEnabled(true);
 			}
 		}
@@ -203,12 +226,14 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 			if (destFullscreenState) {
 				// Put into borderless fullscreen
 				borderlessmining_setBorderlessFullscreen(true);
+				// Don't do anything if it fails!
 			}
 		} else {
 			// Enabled -> Disabled
 			if (currentFullscreenState) {
 				// Take out of borderless fullscreen
 				borderlessmining_setBorderlessFullscreen(false);
+				// Don't do anything if it fails!
 			}
 			if (destFullscreenState) {
 				// Enable exclusive fullscreen
