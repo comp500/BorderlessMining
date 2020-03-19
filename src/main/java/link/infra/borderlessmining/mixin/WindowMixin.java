@@ -3,6 +3,7 @@ package link.infra.borderlessmining.mixin;
 import com.mojang.blaze3d.systems.RenderSystem;
 import link.infra.borderlessmining.config.WIPConfig;
 import link.infra.borderlessmining.util.*;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.WindowEventHandler;
 import net.minecraft.client.WindowSettings;
 import net.minecraft.client.util.Monitor;
@@ -62,6 +63,12 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 		RenderSystem.assertThread(RenderSystem::isInInitPhase);
 		if (borderlessFullscreen != newValue) {
 			borderlessFullscreen = newValue;
+			// Kludge to fix fullscreen option not changing on F11
+			try {
+				MinecraftClient.getInstance().options.fullscreen = newValue;
+			} catch (Exception ignored) {
+				// Whoops something went wrong here!
+			}
 			if (newValue) {
 				// Store previous bounds
 				previousBounds = new WindowBoundsHolder(this);
