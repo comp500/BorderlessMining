@@ -7,5 +7,16 @@
   "config.borderlessmining.general.enabled.tooltip_2": "window when Fullscreen is turned on",
   "config.borderlessmining.general.videomodeoption": "Fullscreen Resolution option",
   "config.borderlessmining.general.videomodeoption.tooltip_1": "Adds an option to the Fullscreen Resolution",
-  "config.borderlessmining.general.videomodeoption.tooltip_2": "slider that enables the mod"
+  "config.borderlessmining.general.videomodeoption.tooltip_2": "slider that enables the mod",
+  "config.borderlessmining.general.forcemonitor": "Monitor",
+  "config.borderlessmining.general.forcemonitor.current": "Current",
+  "config.borderlessmining.dimensions": "Dimensions",
+  "config.borderlessmining.dimensions.enabled": "Use custom dimensions",
+  "config.borderlessmining.dimensions.monitorcoordinates": "Use monitor-relative coordinates",
+  "config.borderlessmining.dimensions.monitorcoordinates.tooltip_1": "Use coordinates relative to the",
+  "config.borderlessmining.dimensions.monitorcoordinates.tooltip_2": "monitor, instead of absolute",
+  "config.borderlessmining.dimensions.x": "X coordinate",
+  "config.borderlessmining.dimensions.y": "Y coordinate",
+  "config.borderlessmining.dimensions.width": "Width",
+  "config.borderlessmining.dimensions.height": "Height"
 }

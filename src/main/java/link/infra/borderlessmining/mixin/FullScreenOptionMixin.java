@@ -21,7 +21,7 @@ public abstract class FullScreenOptionMixin {
 	// Modify the superconstructor call in FullScreenOption to add an extra option for Borderless Fullscreen
 	@ModifyArgs(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/options/DoubleOption;<init>(Ljava/lang/String;DDFLjava/util/function/Function;Ljava/util/function/BiConsumer;Ljava/util/function/BiFunction;)V"), method = "<init>(Lnet/minecraft/client/util/Window;Lnet/minecraft/client/util/Monitor;)V")
 	private static void modifyDoubleOption(Args args, Window window, Monitor monitor) {
-		if (!ConfigHandler.getInstance().isOptionEnabled()) {
+		if (!ConfigHandler.getInstance().addToVanillaVideoSettings) {
 			return;
 		}
 

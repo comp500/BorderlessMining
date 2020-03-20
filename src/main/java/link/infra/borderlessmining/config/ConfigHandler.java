@@ -40,7 +40,64 @@ public class ConfigHandler {
 	}
 
 	private boolean enableBorderlessFullscreen = true;
-	private boolean addToVanillaVideoSettings = true;
+	public boolean addToVanillaVideoSettings = true;
+	// TODO: add option to force macOS
+
+	public CustomWindowDimensions customWindowDimensions = CustomWindowDimensions.INITIAL;
+	public int forceWindowMonitor = -1;
+
+	public static class CustomWindowDimensions {
+		public static transient final CustomWindowDimensions INITIAL = new CustomWindowDimensions();
+
+		public final boolean enabled;
+		public final int x;
+		public final int y;
+		public final int width;
+		public final int height;
+		public boolean useMonitorCoordinates;
+
+		private CustomWindowDimensions() {
+			enabled = false;
+			x = 0;
+			y = 0;
+			width = 0;
+			height = 0;
+			useMonitorCoordinates = true;
+		}
+
+		public CustomWindowDimensions(boolean enabled, int x, int y, int width, int height, boolean useMonitorCoordinates) {
+			this.enabled = enabled;
+			this.x = x;
+			this.y = y;
+			this.width = width;
+			this.height = height;
+			this.useMonitorCoordinates = useMonitorCoordinates;
+		}
+
+		public CustomWindowDimensions setEnabled(boolean enabled) {
+			return new CustomWindowDimensions(enabled, x, y, width, height, useMonitorCoordinates);
+		}
+
+		public CustomWindowDimensions setX(int x) {
+			return new CustomWindowDimensions(enabled, x, y, width, height, useMonitorCoordinates);
+		}
+
+		public CustomWindowDimensions setY(int y) {
+			return new CustomWindowDimensions(enabled, x, y, width, height, useMonitorCoordinates);
+		}
+
+		public CustomWindowDimensions setWidth(int width) {
+			return new CustomWindowDimensions(enabled, x, y, width, height, useMonitorCoordinates);
+		}
+
+		public CustomWindowDimensions setHeight(int height) {
+			return new CustomWindowDimensions(enabled, x, y, width, height, useMonitorCoordinates);
+		}
+
+		public CustomWindowDimensions setUseMonitorCoordinates(boolean useMonitorCoordinates) {
+			return new CustomWindowDimensions(enabled, x, y, width, height, useMonitorCoordinates);
+		}
+	}
 
 	private transient boolean enabledPending = true;
 	private transient boolean enabledDirty = false;
@@ -62,14 +119,6 @@ public class ConfigHandler {
 
 	public boolean isEnabled() {
 		return enableBorderlessFullscreen;
-	}
-
-	public boolean isOptionEnabled() {
-		return addToVanillaVideoSettings;
-	}
-
-	public void setOptionEnabled(boolean optionEnabled) {
-		this.addToVanillaVideoSettings = optionEnabled;
 	}
 
 	public void save() {
@@ -98,9 +147,4 @@ public class ConfigHandler {
 			LOGGER.error("Failed to save configuration", e);
 		}
 	}
-
-	// TODO: config system, initial properties:
-	// enableBorderlessFullscreen boolean
-	// addToVanillaOptionsMenu boolean (better name?)
-	// x/y/height/width and screen?
 }

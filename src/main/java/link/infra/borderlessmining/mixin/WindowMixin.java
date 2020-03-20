@@ -14,7 +14,10 @@ import net.minecraft.client.util.VideoMode;
 import net.minecraft.client.util.Window;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.system.MemoryStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -23,6 +26,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.nio.IntBuffer;
 
 @Mixin(Window.class)
 public abstract class WindowMixin implements WindowHooks {
@@ -81,17 +86,85 @@ public abstract class WindowMixin implements WindowHooks {
 				windowedY = getY();
 				windowedWidth = getWidth();
 				windowedHeight = getHeight();
-				// TODO: make this configurable, so you can specify monitor/bounds
-				Monitor monitor = this.monitorTracker.getMonitor((Window) (Object) this);
-				if (monitor == null) {
-					LOGGER.warn("Failed to get a valid monitor for determining fullscreen size!");
-					borderlessFullscreen = false;
-					return false;
+
+				int x;
+				int y;
+				int width;
+				int height;
+				if (ConfigHandler.getInstance().customWindowDimensions != null &&
+					ConfigHandler.getInstance().customWindowDimensions.enabled &&
+					!ConfigHandler.getInstance().customWindowDimensions.useMonitorCoordinates) {
+					x = 0;
+					y = 0;
+					width = 0;
+					height = 0;
+				} else if (ConfigHandler.getInstance().forceWindowMonitor < 0) {
+					Monitor monitor = this.monitorTracker.getMonitor((Window) (Object) this);
+					if (monitor == null) {
+						LOGGER.error("Failed to get a valid monitor for determining fullscreen size!");
+						borderlessFullscreen = false;
+						return false;
+					}
+					VideoMode mode = monitor.getCurrentVideoMode();
+					x = monitor.getViewportX();
+					y = monitor.getViewportY();
+					width = mode.getWidth();
+					height = mode.getHeight();
+				} else {
+					PointerBuffer monitors = GLFW.glfwGetMonitors();
+					if (monitors == null || monitors.limit() < 1) {
+						LOGGER.error("Failed to get a valid monitor list for determining fullscreen position!");
+						borderlessFullscreen = false;
+						return false;
+					}
+					if (ConfigHandler.getInstance().forceWindowMonitor >= monitors.limit()) {
+						LOGGER.warn("Monitor " + ConfigHandler.getInstance().forceWindowMonitor + " is greater than list size " + monitors.limit() + ", using monitor 0");
+					}
+					long monitorHandle = monitors.get(ConfigHandler.getInstance().forceWindowMonitor);
+					try (MemoryStack stack = MemoryStack.stackPush()) {
+						IntBuffer xBuf = stack.mallocInt(1);
+						IntBuffer yBuf = stack.mallocInt(1);
+						GLFW.glfwGetMonitorPos(monitorHandle, xBuf, yBuf);
+						x = xBuf.get();
+						y = yBuf.get();
+					}
+					GLFWVidMode mode = GLFW.glfwGetVideoMode(monitorHandle);
+					if (mode == null) {
+						LOGGER.error("Failed to get a video mode for the current monitor!");
+						borderlessFullscreen = false;
+						return false;
+					} else {
+						width = mode.width();
+						height = mode.height();
+					}
 				}
-				VideoMode mode = monitor.getCurrentVideoMode();
+
+				if (ConfigHandler.getInstance().customWindowDimensions != null) {
+					ConfigHandler.CustomWindowDimensions dims = ConfigHandler.getInstance().customWindowDimensions;
+					if (dims.enabled) {
+						if (dims.x > 0 && dims.y > 0) {
+							if (dims.useMonitorCoordinates) {
+								x += dims.x;
+								y += dims.y;
+							} else {
+								x = dims.x;
+								y = dims.y;
+							}
+						}
+						if (dims.width > 0 && dims.height > 0) {
+							width = dims.width;
+							height = dims.height;
+						} else if (!dims.useMonitorCoordinates) {
+							LOGGER.error("Both width and height must be > 0 when specifying absolute coordinates!");
+							borderlessFullscreen = false;
+							return false;
+						}
+					}
+				}
+
 				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
-				GLFW.glfwSetWindowPos(handle, monitor.getViewportX(), monitor.getViewportY());
-				GLFW.glfwSetWindowSize(handle, mode.getWidth(), mode.getHeight());
+				GLFW.glfwSetWindowPos(handle, x, y);
+				GLFW.glfwSetWindowSize(handle, width, height);
 			} else {
 				// Reset to previous bounds
 				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, GLFW.GLFW_TRUE);
