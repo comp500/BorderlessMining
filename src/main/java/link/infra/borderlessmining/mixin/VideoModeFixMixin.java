@@ -22,8 +22,8 @@ public class VideoModeFixMixin extends GameOptionsScreen {
 
 	@Inject(at = @At("HEAD"), method = "removed()V")
 	public void screenRemoved(CallbackInfo ci) {
-		if (this.minecraft != null) {
-			this.minecraft.getWindow().applyVideoMode();
+		if (this.client != null) {
+			this.client.getWindow().applyVideoMode();
 		}
 	}
 }
