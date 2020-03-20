@@ -4,7 +4,7 @@
   "version": "${version}",
 
   "name": "Borderless Mining",
-  "description": "A windowed borderless (fullscreen) mod for 1.13 and newer versions of Minecraft.",
+  "description": "Adds a windowed borderless (fullscreen) option",
   "authors": [
     "comp500"
   ],
