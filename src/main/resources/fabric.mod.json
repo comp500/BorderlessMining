@@ -19,9 +19,6 @@
 
   "environment": "client",
   "entrypoints": {
-    "client": [
-      "link.infra.borderlessmining.BorderlessMining"
-    ],
     "modmenu" : [
       "link.infra.borderlessmining.config.ModMenuCompat"
     ]

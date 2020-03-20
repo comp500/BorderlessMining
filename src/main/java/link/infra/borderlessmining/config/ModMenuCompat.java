@@ -21,19 +21,19 @@ public class ModMenuCompat implements ModMenuApi {
 			ConfigBuilder builder = ConfigBuilder.create();
 			builder.setParentScreen(parent);
 			builder.setTitle("config.borderlessmining.title");
-			builder.setSavingRunnable(WIPConfig.getInstance()::save);
+			builder.setSavingRunnable(ConfigHandler.getInstance()::save);
 
 			ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 			ConfigCategory general = builder.getOrCreateCategory("config.borderlessmining.general");
-			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.enabled", WIPConfig.getInstance().enabled)
+			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.enabled", ConfigHandler.getInstance().isEnabled())
 					.setDefaultValue(true)
 					.setTooltip(I18n.translate("config.borderlessmining.general.enabled.tooltip_1"), I18n.translate("config.borderlessmining.general.enabled.tooltip_2"))
-					.setSaveConsumer(WIPConfig.getInstance()::setEnabledPending)
+					.setSaveConsumer(ConfigHandler.getInstance()::setEnabledPending)
 					.build());
-			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.videomodeoption", WIPConfig.getInstance().optionEnabled)
+			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.videomodeoption", ConfigHandler.getInstance().isOptionEnabled())
 					.setDefaultValue(true)
 					.setTooltip(I18n.translate("config.borderlessmining.general.videomodeoption.tooltip_1"), I18n.translate("config.borderlessmining.general.videomodeoption.tooltip_2"))
-					.setSaveConsumer(enabled -> WIPConfig.getInstance().optionEnabled = enabled)
+					.setSaveConsumer(ConfigHandler.getInstance()::setOptionEnabled)
 					.build());
 
 			return builder.build();

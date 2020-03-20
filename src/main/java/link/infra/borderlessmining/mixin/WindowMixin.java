@@ -1,7 +1,7 @@
 package link.infra.borderlessmining.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import link.infra.borderlessmining.config.WIPConfig;
+import link.infra.borderlessmining.config.ConfigHandler;
 import link.infra.borderlessmining.util.SettingBorderlessFullscreen;
 import link.infra.borderlessmining.util.WindowHooks;
 import link.infra.borderlessmining.util.WindowResolutionChangeWrapper;
@@ -104,7 +104,7 @@ public abstract class WindowMixin implements WindowHooks {
 
 	@Inject(at = @At("RETURN"), method = "<init>")
 	private void onConstruction(WindowEventHandler prevEventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo info) {
-		if (WIPConfig.getInstance().enabled) {
+		if (ConfigHandler.getInstance().isEnabled()) {
 			// Stop onResolutionChanged from being triggered if borderless is being set in the constructor
 			WindowResolutionChangeWrapper eventHandlerWrapper = new WindowResolutionChangeWrapper(prevEventHandler);
 			this.eventHandler = eventHandlerWrapper;
@@ -121,12 +121,12 @@ public abstract class WindowMixin implements WindowHooks {
 
 	@Inject(method = "toggleFullscreen", at = @At("HEAD"), cancellable = true)
 	public void onToggleFullscreen(CallbackInfo info) {
-		if (WIPConfig.getInstance().isEnabledDirty()) {
-			WIPConfig.getInstance().save(!borderlessmining_getFullscreenState());
+		if (ConfigHandler.getInstance().isEnabledDirty()) {
+			ConfigHandler.getInstance().save(!borderlessmining_getFullscreenState());
 			info.cancel();
 			return;
 		}
-		if (WIPConfig.getInstance().enabled) {
+		if (ConfigHandler.getInstance().isEnabled()) {
 			fullscreen = false;
 			info.cancel();
 			borderlessmining_setBorderlessFullscreen(!borderlessFullscreen);
@@ -136,15 +136,15 @@ public abstract class WindowMixin implements WindowHooks {
 	@Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
 	public void onIsFullscreen(CallbackInfoReturnable<Boolean> cir) {
 		// If BM is enabled, return borderlessFullscreen, otherwise defer to normal isFullscreen
-		if (WIPConfig.getInstance().enabled) {
+		if (ConfigHandler.getInstance().isEnabled()) {
 			cir.setReturnValue(borderlessFullscreen);
 		}
 	}
 
 	@Inject(method = "applyVideoMode", at = @At("HEAD"))
 	private void onApplyVideoMode(CallbackInfo info) {
-		if (WIPConfig.getInstance().isEnabledDirty()) {
-			WIPConfig.getInstance().save();
+		if (ConfigHandler.getInstance().isEnabledDirty()) {
+			ConfigHandler.getInstance().save();
 			// Ensure that the video mode isn't changed later - updateEnabledState has already done this
 			videoModeDirty = false;
 		}
@@ -154,7 +154,7 @@ public abstract class WindowMixin implements WindowHooks {
 	 * Updates the state of the game to the new value of the enabled configuration option
 	 */
 	public boolean borderlessmining_getFullscreenState() {
-		return WIPConfig.getInstance().enabled ? borderlessFullscreen : fullscreen;
+		return ConfigHandler.getInstance().isEnabled() ? borderlessFullscreen : fullscreen;
 	}
 
 	/**
@@ -163,8 +163,6 @@ public abstract class WindowMixin implements WindowHooks {
 	 * @param destFullscreenState The desired destination fullscreen state, after applying this change
 	 */
 	public void borderlessmining_updateEnabledState(boolean destEnabledState, boolean currentFullscreenState, boolean destFullscreenState) {
-		// TODO: remove printlns
-		System.out.println("Updating enabled state: Curr/DestF/DestE " + currentFullscreenState + "/" + destFullscreenState + "/" + destEnabledState);
 		// Update enabled state, applying changes if they need to be done
 		if (destEnabledState) {
 			// Disabled -> Enabled
