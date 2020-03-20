@@ -2,7 +2,9 @@ package link.infra.borderlessmining.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import link.infra.borderlessmining.config.WIPConfig;
-import link.infra.borderlessmining.util.*;
+import link.infra.borderlessmining.util.SettingBorderlessFullscreen;
+import link.infra.borderlessmining.util.WindowHooks;
+import link.infra.borderlessmining.util.WindowResolutionChangeWrapper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.WindowEventHandler;
 import net.minecraft.client.WindowSettings;
@@ -23,11 +25,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Window.class)
-public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
+public abstract class WindowMixin implements WindowHooks {
 	@Shadow public abstract int getX();
 	@Shadow public abstract int getY();
 	@Shadow public abstract int getWidth();
 	@Shadow public abstract int getHeight();
+
+	@Shadow private int windowedX;
+	@Shadow private int windowedY;
+	@Shadow private int windowedWidth;
+	@Shadow private int windowedHeight;
 
 	@Shadow
 	private boolean fullscreen;
@@ -51,7 +58,6 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 	private MonitorTracker monitorTracker;
 
 	private boolean borderlessFullscreen = false;
-	private WindowBoundsHolder previousBounds = null;
 	private static final Logger LOGGER = LogManager.getLogger(WindowMixin.class);
 
 	/**
@@ -63,7 +69,7 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 		RenderSystem.assertThread(RenderSystem::isInInitPhase);
 		if (borderlessFullscreen != newValue) {
 			borderlessFullscreen = newValue;
-			// Kludge to fix fullscreen option not changing on F11
+			// Kludge to fix fullscreen option button text not changing on F11
 			try {
 				MinecraftClient.getInstance().options.fullscreen = newValue;
 			} catch (Exception ignored) {
@@ -71,7 +77,10 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 			}
 			if (newValue) {
 				// Store previous bounds
-				previousBounds = new WindowBoundsHolder(this);
+				windowedX = getX();
+				windowedY = getY();
+				windowedWidth = getWidth();
+				windowedHeight = getHeight();
 				// TODO: make this configurable, so you can specify monitor/bounds
 				Monitor monitor = this.monitorTracker.getMonitor((Window) (Object) this);
 				if (monitor == null) {
@@ -83,11 +92,11 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, GLFW.GLFW_FALSE);
 				GLFW.glfwSetWindowPos(handle, monitor.getViewportX(), monitor.getViewportY());
 				GLFW.glfwSetWindowSize(handle, mode.getWidth(), mode.getHeight());
-			} else if (previousBounds != null) {
+			} else {
 				// Reset to previous bounds
 				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_DECORATED, GLFW.GLFW_TRUE);
-				GLFW.glfwSetWindowPos(handle, previousBounds.getX(), previousBounds.getY());
-				GLFW.glfwSetWindowSize(handle, previousBounds.getWidth(), previousBounds.getHeight());
+				GLFW.glfwSetWindowPos(handle, windowedX, windowedY);
+				GLFW.glfwSetWindowSize(handle, windowedWidth, windowedHeight);
 			}
 		}
 		return true;
@@ -126,7 +135,6 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 
 	@Inject(method = "isFullscreen", at = @At("RETURN"), cancellable = true)
 	public void onIsFullscreen(CallbackInfoReturnable<Boolean> cir) {
-		// TODO: check f11 with fullscreen: on/off setting
 		// If BM is enabled, return borderlessFullscreen, otherwise defer to normal isFullscreen
 		if (WIPConfig.getInstance().enabled) {
 			cir.setReturnValue(borderlessFullscreen);
@@ -155,6 +163,7 @@ public abstract class WindowMixin implements WindowBoundsGetter, WindowHooks {
 	 * @param destFullscreenState The desired destination fullscreen state, after applying this change
 	 */
 	public void borderlessmining_updateEnabledState(boolean destEnabledState, boolean currentFullscreenState, boolean destFullscreenState) {
+		// TODO: remove printlns
 		System.out.println("Updating enabled state: Curr/DestF/DestE " + currentFullscreenState + "/" + destFullscreenState + "/" + destEnabledState);
 		// Update enabled state, applying changes if they need to be done
 		if (destEnabledState) {
