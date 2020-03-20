@@ -38,9 +38,6 @@
     "fabric": "*",
     "minecraft": ">=1.15.0"
   },
-  "conflicts": {
-    "optifabric": "*"
-  },
   
   "custom": {
     "modmenu:clientsideOnly": true
