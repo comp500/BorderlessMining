@@ -41,7 +41,7 @@ public class ConfigHandler {
 
 	private boolean enableBorderlessFullscreen = true;
 	public boolean addToVanillaVideoSettings = true;
-	// TODO: add option to force macOS
+	public boolean enableMacOS = false;
 
 	public CustomWindowDimensions customWindowDimensions = CustomWindowDimensions.INITIAL;
 	public int forceWindowMonitor = -1;
@@ -105,12 +105,12 @@ public class ConfigHandler {
 	public void setEnabledPending(boolean en) {
 		if (enabledPending != en) {
 			enabledPending = en;
-			enabledDirty = (en != enableBorderlessFullscreen);
+			enabledDirty = (en != isEnabled());
 		}
 	}
 
 	public boolean isEnabledOrPending() {
-		return enabledDirty ? enabledPending : enableBorderlessFullscreen;
+		return enabledDirty ? enabledPending : isEnabled();
 	}
 
 	public boolean isEnabledDirty() {
@@ -118,7 +118,7 @@ public class ConfigHandler {
 	}
 
 	public boolean isEnabled() {
-		return enableBorderlessFullscreen;
+		return enableBorderlessFullscreen && (!MinecraftClient.IS_SYSTEM_MAC || enableMacOS);
 	}
 
 	public void save() {
@@ -137,7 +137,7 @@ public class ConfigHandler {
 			enableBorderlessFullscreen = enabledPending;
 			enabledDirty = false;
 
-			window.borderlessmining_updateEnabledState(enableBorderlessFullscreen, currentState, destFullscreenState);
+			window.borderlessmining_updateEnabledState(isEnabled(), currentState, destFullscreenState);
 		}
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();

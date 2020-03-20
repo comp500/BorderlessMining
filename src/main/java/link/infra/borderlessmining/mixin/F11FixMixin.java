@@ -19,7 +19,7 @@ public class F11FixMixin {
 	@Shadow @Final
 	private MinecraftClient client;
 
-	@Inject(method = "Lnet/minecraft/client/Keyboard;onKey(JIIII)V",
+	@Inject(method = "onKey(JIIII)V",
 		at = @At(value = "FIELD", target = "Lnet/minecraft/client/options/GameOptions;fullscreen:Z",
 			opcode = Opcodes.PUTFIELD, ordinal = 0, shift = At.Shift.BY, by = 1))
 	public void keyPressed(long window, int key, int scancode, int i, int j, CallbackInfo ci) {

@@ -70,6 +70,7 @@ public abstract class WindowMixin implements WindowHooks {
 	 * @param newValue The new state of borderless fullscreen to set
 	 * @return True if it was successful, false otherwise
 	 */
+	@SuppressWarnings("UnusedReturnValue")
 	private boolean borderlessmining_setBorderlessFullscreen(boolean newValue) {
 		RenderSystem.assertThread(RenderSystem::isInInitPhase);
 		if (borderlessFullscreen != newValue) {

@@ -57,8 +57,8 @@ public class ModMenuCompat implements ModMenuApi {
 				LOGGER.warn("Failed to get a valid monitor list!");
 				currentMonitor = 0;
 			} else {
-				if (ConfigHandler.getInstance().forceWindowMonitor >= monitors.limit()) {
-					LOGGER.warn("Monitor " + ConfigHandler.getInstance().forceWindowMonitor + " is greater than list size " + monitors.limit() + ", using monitor 0");
+				if (configHandler.forceWindowMonitor >= monitors.limit()) {
+					LOGGER.warn("Monitor " + configHandler.forceWindowMonitor + " is greater than list size " + monitors.limit() + ", using monitor 0");
 					currentMonitor = 0;
 				}
 				long monitorHandle;
@@ -78,7 +78,12 @@ public class ModMenuCompat implements ModMenuApi {
 						configHandler.forceWindowMonitor = index - 1;
 					}
 				}).build());
-			// TODO: add entries for macOS
+
+			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.enabledmac", configHandler.enableMacOS)
+				.setDefaultValue(false)
+				.setTooltip(I18n.translate("config.borderlessmining.general.enabledmac.tooltip_1"), I18n.translate("config.borderlessmining.general.enabledmac.tooltip_2"))
+				.setSaveConsumer(enabled -> configHandler.enableMacOS = enabled)
+				.build());
 
 			ConfigCategory dimensions = builder.getOrCreateCategory("config.borderlessmining.dimensions");
 			dimensions.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.dimensions.enabled", configHandler.customWindowDimensions.enabled)
