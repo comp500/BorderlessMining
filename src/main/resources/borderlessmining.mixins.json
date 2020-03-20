@@ -8,9 +8,11 @@
     "WindowMixin",
     "FullScreenOptionMixin",
     "WindowSettingsMixin",
-    "F11FixMixin"
+    "F11FixMixin",
+    "VideoModeFixMixin"
   ],
   "injectors": {
-    "defaultRequire": 1
+    "defaultRequire": 1,
+    "maxShiftBy": 1
   }
 }
