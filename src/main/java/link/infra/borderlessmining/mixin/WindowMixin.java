@@ -176,6 +176,20 @@ public abstract class WindowMixin implements WindowHooks {
 		return true;
 	}
 
+	//@Inject(at = @At("RETURN"), method = "onWindowFocusChanged(JZ)V")
+	private void onWindowFocusChanged(long window, boolean focused, CallbackInfo ci) {
+		if (window == handle) {
+			// This seems to be buggy when switching between borderless fullscreen and a standard window
+			// and when clicking directly to another application from fullscreen (if it doesn't cover the screen)
+			// so for now it is disabled.
+			if (ConfigHandler.getInstance().isEnabled() && this.borderlessFullscreen && focused) {
+				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FLOATING, GLFW.GLFW_TRUE);
+			} else {
+				GLFW.glfwSetWindowAttrib(handle, GLFW.GLFW_FLOATING, GLFW.GLFW_FALSE);
+			}
+		}
+	}
+
 	@Inject(at = @At("RETURN"), method = "<init>")
 	private void onConstruction(WindowEventHandler prevEventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo info) {
 		if (ConfigHandler.getInstance().isEnabled()) {
