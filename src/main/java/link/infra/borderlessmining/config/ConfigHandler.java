@@ -34,7 +34,7 @@ public class ConfigHandler {
 			}
 			if (INSTANCE == null) {
 				INSTANCE = new ConfigHandler();
-				INSTANCE.save();
+				INSTANCE.save(false);
 			}
 		}
 		return INSTANCE;
