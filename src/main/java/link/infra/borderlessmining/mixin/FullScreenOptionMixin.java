@@ -4,9 +4,10 @@ import link.infra.borderlessmining.config.ConfigHandler;
 import net.minecraft.client.options.DoubleOption;
 import net.minecraft.client.options.FullScreenOption;
 import net.minecraft.client.options.GameOptions;
-import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.Monitor;
 import net.minecraft.client.util.Window;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
@@ -32,7 +33,7 @@ public abstract class FullScreenOptionMixin {
 		// Modify the getter/setters to modify Borderless Windowed settings when the last option is set
 		Function<GameOptions, Double> getter = args.get(4);
 		BiConsumer<GameOptions, Double> setter = args.get(5);
-		BiFunction<GameOptions, DoubleOption, String> desc = args.get(6);
+		BiFunction<GameOptions, DoubleOption, Text> desc = args.get(6);
 
 		args.set(4, (Function<GameOptions, Double>) (opts) -> {
 			if (ConfigHandler.getInstance().isEnabledOrPending()) {
@@ -50,9 +51,9 @@ public abstract class FullScreenOptionMixin {
 				setter.accept(opts, val);
 			}
 		});
-		args.set(6, (BiFunction<GameOptions, DoubleOption, String>) (opts, val) -> {
+		args.set(6, (BiFunction<GameOptions, DoubleOption, Text>) (opts, val) -> {
 			if (val.get(opts) == max) {
-				return I18n.translate("text.borderlessmining.videomodename");
+				return new TranslatableText("text.borderlessmining.videomodename");
 			}
 			return desc.apply(opts, val);
 		});

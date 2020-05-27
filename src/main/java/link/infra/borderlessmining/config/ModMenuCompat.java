@@ -6,6 +6,7 @@ import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.resource.language.I18n;
+import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.PointerBuffer;
@@ -29,19 +30,19 @@ public class ModMenuCompat implements ModMenuApi {
 
 			ConfigBuilder builder = ConfigBuilder.create();
 			builder.setParentScreen(parent);
-			builder.setTitle("config.borderlessmining.title");
+			builder.setTitle(new TranslatableText("config.borderlessmining.title"));
 			builder.setSavingRunnable(configHandler::save);
 
 			ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-			ConfigCategory general = builder.getOrCreateCategory("config.borderlessmining.general");
-			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.enabled", configHandler.isEnabled())
+			ConfigCategory general = builder.getOrCreateCategory(new TranslatableText("config.borderlessmining.general"));
+			general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.borderlessmining.general.enabled"), configHandler.isEnabled())
 					.setDefaultValue(true)
-					.setTooltip(I18n.translate("config.borderlessmining.general.enabled.tooltip_1"), I18n.translate("config.borderlessmining.general.enabled.tooltip_2"))
+					.setTooltip(new TranslatableText("config.borderlessmining.general.enabled.tooltip_1"), new TranslatableText("config.borderlessmining.general.enabled.tooltip_2"))
 					.setSaveConsumer(configHandler::setEnabledPending)
 					.build());
-			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.videomodeoption", configHandler.addToVanillaVideoSettings)
+			general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.borderlessmining.general.videomodeoption"), configHandler.addToVanillaVideoSettings)
 					.setDefaultValue(true)
-					.setTooltip(I18n.translate("config.borderlessmining.general.videomodeoption.tooltip_1"), I18n.translate("config.borderlessmining.general.videomodeoption.tooltip_2"))
+					.setTooltip(new TranslatableText("config.borderlessmining.general.videomodeoption.tooltip_1"), new TranslatableText("config.borderlessmining.general.videomodeoption.tooltip_2"))
 					.setSaveConsumer(optionEnabled -> configHandler.addToVanillaVideoSettings = optionEnabled)
 					.build());
 
@@ -68,9 +69,7 @@ public class ModMenuCompat implements ModMenuApi {
 				}
 			}
 
-			// Shedaniel said it's ok so I just ignore stupid warning
-			//noinspection UnstableApiUsage
-			general.addEntry(entryBuilder.startSelector("config.borderlessmining.general.forcemonitor", monitorNames.toArray(new String[0]), monitorNames.get(currentMonitor))
+			general.addEntry(entryBuilder.startSelector(new TranslatableText("config.borderlessmining.general.forcemonitor"), monitorNames.toArray(new String[0]), monitorNames.get(currentMonitor))
 				.setDefaultValue(monitorNames.get(0))
 				.setSaveConsumer(monitorName -> {
 					int index = monitorNames.indexOf(monitorName);
@@ -79,35 +78,35 @@ public class ModMenuCompat implements ModMenuApi {
 					}
 				}).build());
 
-			general.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.general.enabledmac", configHandler.enableMacOS)
+			general.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.borderlessmining.general.enabledmac"), configHandler.enableMacOS)
 				.setDefaultValue(false)
-				.setTooltip(I18n.translate("config.borderlessmining.general.enabledmac.tooltip_1"), I18n.translate("config.borderlessmining.general.enabledmac.tooltip_2"))
+				.setTooltip(new TranslatableText("config.borderlessmining.general.enabledmac.tooltip_1"), new TranslatableText("config.borderlessmining.general.enabledmac.tooltip_2"))
 				.setSaveConsumer(enabled -> configHandler.enableMacOS = enabled)
 				.build());
 
-			ConfigCategory dimensions = builder.getOrCreateCategory("config.borderlessmining.dimensions");
-			dimensions.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.dimensions.enabled", configHandler.customWindowDimensions.enabled)
+			ConfigCategory dimensions = builder.getOrCreateCategory(new TranslatableText("config.borderlessmining.dimensions"));
+			dimensions.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.borderlessmining.dimensions.enabled"), configHandler.customWindowDimensions.enabled)
 				.setDefaultValue(false)
 				.setSaveConsumer(enabled -> configHandler.customWindowDimensions = configHandler.customWindowDimensions.setEnabled(enabled))
 				.build());
-			dimensions.addEntry(entryBuilder.startBooleanToggle("config.borderlessmining.dimensions.monitorcoordinates", configHandler.customWindowDimensions.useMonitorCoordinates)
+			dimensions.addEntry(entryBuilder.startBooleanToggle(new TranslatableText("config.borderlessmining.dimensions.monitorcoordinates"), configHandler.customWindowDimensions.useMonitorCoordinates)
 				.setDefaultValue(true)
-				.setTooltip(I18n.translate("config.borderlessmining.dimensions.monitorcoordinates.tooltip_1"), I18n.translate("config.borderlessmining.dimensions.monitorcoordinates.tooltip_2"))
+				.setTooltip(new TranslatableText("config.borderlessmining.dimensions.monitorcoordinates.tooltip_1"), new TranslatableText("config.borderlessmining.dimensions.monitorcoordinates.tooltip_2"))
 				.setSaveConsumer(useMonitorCoordinates -> configHandler.customWindowDimensions = configHandler.customWindowDimensions.setUseMonitorCoordinates(useMonitorCoordinates))
 				.build());
-			dimensions.addEntry(entryBuilder.startIntField("config.borderlessmining.dimensions.x", configHandler.customWindowDimensions.x)
+			dimensions.addEntry(entryBuilder.startIntField(new TranslatableText("config.borderlessmining.dimensions.x"), configHandler.customWindowDimensions.x)
 				.setDefaultValue(0)
 				.setSaveConsumer(x -> configHandler.customWindowDimensions = configHandler.customWindowDimensions.setX(x))
 				.build());
-			dimensions.addEntry(entryBuilder.startIntField("config.borderlessmining.dimensions.y", configHandler.customWindowDimensions.y)
+			dimensions.addEntry(entryBuilder.startIntField(new TranslatableText("config.borderlessmining.dimensions.y"), configHandler.customWindowDimensions.y)
 				.setDefaultValue(0)
 				.setSaveConsumer(y -> configHandler.customWindowDimensions = configHandler.customWindowDimensions.setY(y))
 				.build());
-			dimensions.addEntry(entryBuilder.startIntField("config.borderlessmining.dimensions.width", configHandler.customWindowDimensions.width)
+			dimensions.addEntry(entryBuilder.startIntField(new TranslatableText("config.borderlessmining.dimensions.width"), configHandler.customWindowDimensions.width)
 				.setDefaultValue(0)
 				.setSaveConsumer(width -> configHandler.customWindowDimensions = configHandler.customWindowDimensions.setWidth(width))
 				.build());
-			dimensions.addEntry(entryBuilder.startIntField("config.borderlessmining.dimensions.height", configHandler.customWindowDimensions.height)
+			dimensions.addEntry(entryBuilder.startIntField(new TranslatableText("config.borderlessmining.dimensions.height"), configHandler.customWindowDimensions.height)
 				.setDefaultValue(0)
 				.setSaveConsumer(height -> configHandler.customWindowDimensions = configHandler.customWindowDimensions.setHeight(height))
 				.build());
