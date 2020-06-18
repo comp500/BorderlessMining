@@ -36,6 +36,7 @@ public class ConfigHandler {
 				INSTANCE = new ConfigHandler();
 				INSTANCE.save(false);
 			}
+			INSTANCE.enabledPending = INSTANCE.enableBorderlessFullscreen;
 		}
 		return INSTANCE;
 	}

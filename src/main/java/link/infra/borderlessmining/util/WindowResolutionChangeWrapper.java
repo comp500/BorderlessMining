@@ -28,4 +28,9 @@ public class WindowResolutionChangeWrapper implements WindowEventHandler {
 			child.onResolutionChanged();
 		}
 	}
+
+	@Override
+	public void method_30133() {
+		child.method_30133();
+	}
 }

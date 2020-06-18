@@ -19,11 +19,6 @@ public class ModMenuCompat implements ModMenuApi {
 	private static final Logger LOGGER = LogManager.getLogger(ModMenuCompat.class);
 
 	@Override
-	public String getModId() {
-		return "borderlessmining";
-	}
-
-	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
 		return parent -> {
 			ConfigHandler configHandler = ConfigHandler.getInstance();
