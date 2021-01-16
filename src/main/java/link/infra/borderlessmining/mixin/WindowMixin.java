@@ -143,14 +143,12 @@ public abstract class WindowMixin implements WindowHooks {
 				if (ConfigHandler.getInstance().customWindowDimensions != null) {
 					ConfigHandler.CustomWindowDimensions dims = ConfigHandler.getInstance().customWindowDimensions;
 					if (dims.enabled) {
-						if (dims.x > 0 && dims.y > 0) {
-							if (dims.useMonitorCoordinates) {
-								x += dims.x;
-								y += dims.y;
-							} else {
-								x = dims.x;
-								y = dims.y;
-							}
+						if (dims.useMonitorCoordinates) {
+							x += dims.x;
+							y += dims.y;
+						} else {
+							x = dims.x;
+							y = dims.y;
 						}
 						if (dims.width > 0 && dims.height > 0) {
 							width = dims.width;
