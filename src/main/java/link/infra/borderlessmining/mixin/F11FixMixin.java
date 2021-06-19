@@ -20,7 +20,7 @@ public class F11FixMixin {
 	private MinecraftClient client;
 
 	@Inject(method = "onKey(JIIII)V",
-		at = @At(value = "FIELD", target = "Lnet/minecraft/client/options/GameOptions;fullscreen:Z",
+		at = @At(value = "FIELD", target = "Lnet/minecraft/client/option/GameOptions;fullscreen:Z",
 			opcode = Opcodes.PUTFIELD, ordinal = 0, shift = At.Shift.BY, by = 1))
 	public void keyPressed(long window, int key, int scancode, int i, int j, CallbackInfo ci) {
 		this.client.options.write();
