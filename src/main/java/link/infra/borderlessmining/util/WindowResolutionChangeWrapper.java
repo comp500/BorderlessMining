@@ -30,7 +30,7 @@ public class WindowResolutionChangeWrapper implements WindowEventHandler {
 	}
 
 	@Override
-	public void method_30133() {
-		child.method_30133();
+	public void onCursorEnterChanged() {
+		child.onCursorEnterChanged();
 	}
 }

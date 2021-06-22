@@ -1,9 +1,9 @@
 package link.infra.borderlessmining.mixin;
 
 import link.infra.borderlessmining.config.ConfigHandler;
-import net.minecraft.client.options.DoubleOption;
-import net.minecraft.client.options.FullScreenOption;
-import net.minecraft.client.options.GameOptions;
+import net.minecraft.client.option.DoubleOption;
+import net.minecraft.client.option.FullscreenOption;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.util.Monitor;
 import net.minecraft.client.util.Window;
 import net.minecraft.text.Text;
@@ -17,10 +17,10 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-@Mixin(FullScreenOption.class)
+@Mixin(FullscreenOption.class)
 public abstract class FullScreenOptionMixin {
 	// Modify the superconstructor call in FullScreenOption to add an extra option for Borderless Fullscreen
-	@ModifyArgs(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/options/DoubleOption;<init>(Ljava/lang/String;DDFLjava/util/function/Function;Ljava/util/function/BiConsumer;Ljava/util/function/BiFunction;)V"), method = "<init>(Lnet/minecraft/client/util/Window;Lnet/minecraft/client/util/Monitor;)V")
+	@ModifyArgs(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/DoubleOption;<init>(Ljava/lang/String;DDFLjava/util/function/Function;Ljava/util/function/BiConsumer;Ljava/util/function/BiFunction;)V"), method = "<init>(Lnet/minecraft/client/util/Window;Lnet/minecraft/client/util/Monitor;)V")
 	private static void modifyDoubleOption(Args args, Window window, Monitor monitor) {
 		if (!ConfigHandler.getInstance().addToVanillaVideoSettings) {
 			return;
