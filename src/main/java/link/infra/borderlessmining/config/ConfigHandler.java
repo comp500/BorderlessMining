@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 public class ConfigHandler {
-	private static final transient Path configFile = FabricLoader.getInstance().getConfigDirectory().toPath().resolve("borderlessmining.json");
+	private static final transient Path configFile = FabricLoader.getInstance().getConfigDir().resolve("borderlessmining.json");
 	private static final transient Logger LOGGER = LogManager.getLogger(ConfigHandler.class);
 
 	private ConfigHandler() {}
