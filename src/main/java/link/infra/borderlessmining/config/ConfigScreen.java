@@ -105,10 +105,10 @@ public abstract class ConfigScreen extends Screen {
 			}
 		}
 
-//		@Override
-//		public List<? extends Selectable> selectableChildren() {
-//			return buttons;
-//		}
+		@Override
+		public List<? extends Selectable> selectableChildren() {
+			return buttons;
+		}
 
 		@Override
 		public List<? extends Element> children() {
@@ -123,10 +123,10 @@ public abstract class ConfigScreen extends Screen {
 			return null;
 		}
 
-		@Override
-		public List<? extends Selectable> selectableChildren() {
-			return null;
-		}
+//		@Override
+//		public List<? extends Selectable> selectableChildren() {
+//			return null;
+//		}
 	}
 
 	@Override
