@@ -125,7 +125,7 @@ if (System.getenv("GITHUB_TOKEN")) {
 		repo = project.github_repo_name
 		tagName = project.version
 		releaseName = "Release ${project.version}"
-		targetCommitish = "1.17"
+		targetCommitish = "1.18"
 		draft = false
 		body = getChangelog(null)
 		token System.getenv("GITHUB_TOKEN")
@@ -138,8 +138,8 @@ if (System.getenv("GITHUB_TOKEN")) {
 
 import com.modrinth.minotaur.TaskModrinthUpload
 // TODO: infer from fabric.mod.json?!
-def supportedVersions = ["1.17", "1.17.1"]
-def versionSupportName = "(Fabric 1.17.x)"
+def supportedVersions = ["1.18"]
+def versionSupportName = "(Fabric 1.18.x)"
 
 task publishModrinth(type: TaskModrinthUpload) {
 	dependsOn remapJar
