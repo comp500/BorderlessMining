@@ -72,7 +72,7 @@ public abstract class WindowMixin implements WindowHooks {
 	 */
 	@SuppressWarnings("UnusedReturnValue")
 	private boolean borderlessmining_setBorderlessFullscreen(boolean newValue) {
-		RenderSystem.assertThread(RenderSystem::isInInitPhase);
+		RenderSystem.assertOnRenderThreadOrInit();
 		if (borderlessFullscreen != newValue) {
 			borderlessFullscreen = newValue;
 			// Kludge to fix fullscreen option button text not changing on F11

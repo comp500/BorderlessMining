@@ -39,7 +39,7 @@ public abstract class ConfigScreen extends Screen {
 		addDrawableChild(entries);
 		addDrawableChild(new ButtonWidget(width / 2 - 100, height - 27, 200, 20, ScreenTexts.DONE, (button) -> {
 			save();
-			client.openScreen(parent);
+			client.setScreen(parent);
 		}));
 	}
 
@@ -106,7 +106,7 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public List<? extends Selectable> method_37025() {
+		public List<? extends Selectable> selectableChildren() {
 			return buttons;
 		}
 
@@ -208,7 +208,7 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public List<? extends Selectable> method_37025() {
+		public List<? extends Selectable> selectableChildren() {
 			return Collections.singletonList(new Selectable() {
 				@Override
 				public Selectable.SelectionType getType() {
