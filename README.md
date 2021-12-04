@@ -5,12 +5,6 @@ This mod also adds the Borderless Windowed option to the Video Settings screen, 
 
 This mod is a rewrite of a Forge 1.12 mod, [Fullscreen Windowed (Borderless)](https://minecraft.curseforge.com/projects/fullscreen-windowed-borderless-for-minecraft), however it used to be a fork of that mod (which the 1.12 version of this mod is) - see the bottom of the Curseforge page for the original description.
 
-## 1.13+ Changes
-- Minecraft 1.13+ uses LWJGL 3, which completely changes how window management works.
-- It technically uses borderless fullscreen when your fullscreen mode is the same as your display mode (Fullscreen Resolution: Current), but when you unfocus the screen it minimises.
-- GLFW provides a way to disable this functionality with a window hint, GLFW\_AUTO\_ICONIFY, but this just makes a window that is atop all other windows!
-- Therefore, this mod makes the normal fullscreen setting (controllable with a slider) use a window with no borders that covers the entirety of the current window. (although this can be configured)
-- Unfortunately, this has *slightly worse* performance than the normal borderless fullscreen mode.
-- On Mac, this mod is disabled by default, as it is impossible to position the window above the menu bar.
-- This mod fixes a couple bugs: [MC-175431](https://bugs.mojang.com/browse/MC-175431) [MC-175437](https://bugs.mojang.com/browse/MC-175437)
-- Other related Mojira bugs include: [MC-158117](https://bugs.mojang.com/browse/MC-158117) [MC-175233](https://bugs.mojang.com/browse/MC-175233) [MC-168675](https://bugs.mojang.com/browse/MC-168675)
+See [Borderless Window](https://github.com/Nekeras/borderless) by nekeras if you're looking for a similar mod for Forge 1.14+
+
+On macOS this mod is disabled by default, as it is impossible to position the window above the menu bar, and macOS has better fullscreen support anyway.
