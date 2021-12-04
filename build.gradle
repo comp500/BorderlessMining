@@ -123,8 +123,8 @@ if (System.getenv("GITHUB_TOKEN")) {
 	githubRelease {
 		owner = project.github_repo_user
 		repo = project.github_repo_name
-		tagName = project.mod_version
-		releaseName = "Release ${project.mod_version}"
+		tagName = project.version
+		releaseName = "Release ${project.version}"
 		targetCommitish = "1.17"
 		draft = false
 		body = getChangelog(null)
@@ -149,7 +149,7 @@ task publishModrinth(type: TaskModrinthUpload) {
 
 	token = System.getenv("MODRINTH_TOKEN")
 	projectId = project.modrinth_id
-	versionNumber = project.mod_version
+	versionNumber = project.version
 	uploadFile = remapJar
 	for (version in supportedVersions) {
 		addGameVersion(version)
