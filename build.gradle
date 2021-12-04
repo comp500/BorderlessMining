@@ -166,7 +166,7 @@ if (System.getenv("CURSEFORGE_TOKEN")) {
 	curseforge {
 		apiKey = System.getenv("CURSEFORGE_TOKEN")
 		project {
-			id = project.curseforge_id_fabric
+			id = project.curseforge_id
 			releaseType = "release"
 
 			mainArtifact(remapJar) {
