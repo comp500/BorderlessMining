@@ -118,10 +118,13 @@ public abstract class WindowMixin implements WindowHooks {
 						borderlessFullscreen = false;
 						return false;
 					}
+					long monitorHandle;
 					if (ConfigHandler.getInstance().forceWindowMonitor >= monitors.limit()) {
 						LOGGER.warn("Monitor " + ConfigHandler.getInstance().forceWindowMonitor + " is greater than list size " + monitors.limit() + ", using monitor 0");
+						monitorHandle = monitors.get(0);
+					} else {
+						monitorHandle = monitors.get(ConfigHandler.getInstance().forceWindowMonitor);
 					}
-					long monitorHandle = monitors.get(ConfigHandler.getInstance().forceWindowMonitor);
 					try (MemoryStack stack = MemoryStack.stackPush()) {
 						IntBuffer xBuf = stack.mallocInt(1);
 						IntBuffer yBuf = stack.mallocInt(1);
