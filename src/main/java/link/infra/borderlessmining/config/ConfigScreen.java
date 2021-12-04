@@ -122,11 +122,6 @@ public abstract class ConfigScreen extends Screen {
 		public Style getHoveredStyle(int mouseX, int mouseY) {
 			return null;
 		}
-
-//		@Override
-//		public List<? extends Selectable> selectableChildren() {
-//			return null;
-//		}
 	}
 
 	@Override
