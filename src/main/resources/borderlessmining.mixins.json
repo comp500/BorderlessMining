@@ -5,11 +5,10 @@
   "mixins": [
   ],
   "client": [
-    "WindowMixin",
-    "FullScreenOptionMixin",
-    "WindowSettingsMixin",
-    "F11FixMixin",
-    "VideoModeFixMixin"
+	  "FullScreenOptionMixin",
+	  "VideoModeFixMixin",
+	  "WindowMixin",
+	  "WindowSettingsMixin"
   ],
   "injectors": {
     "defaultRequire": 1,

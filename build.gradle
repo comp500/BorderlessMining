@@ -1,13 +1,41 @@
 plugins {
 	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
+
+	id "com.github.breadmoirai.github-release" version "2.2.12"
+	id "org.ajoberstar.grgit" version "4.1.0"
+	id "com.modrinth.minotaur" version "1.2.1"
+	id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
+String getGitVersion(Project project) {
+	if (grgit != null) {
+		if (grgit.describe(tags: true) == "${project.mod_version}+${project.minecraft_version}") {
+			return "${project.mod_version}+${project.minecraft_version}"
+		} else {
+			var dirty = grgit.status().clean ? "" : "-dirty"
+			return "${project.mod_version}-dev.${grgit.head().abbreviatedId}+${project.minecraft_version}${dirty}"
+		}
+	} else {
+		return "${project.mod_version}-dev.unknown+${project.minecraft_version}"
+	}
+}
+
+String getChangelog(String githubUrl) {
+	// Get changes since the last tag
+	return grgit.log(includes: ["HEAD"], excludes: [
+			// Get the last tag, removing the number of commits since the tag and the current HEAD~ hash
+			grgit.describe(commit: "HEAD~", tags: true).replaceAll("-\\d+-[a-z0-9]+\$", "")
+	]).collect {
+		"- ${it.shortMessage} (${it.author.name})"
+	}.join("\n") + (githubUrl == null ? "" : "\n\nSee the full changes on Github: ${githubUrl}commits/${grgit.describe(tags: true)}")
+}
+
 archivesBaseName = project.archives_base_name
-version = project.mod_version + "+" + project.minecraft_version
+version = getGitVersion(project)
 group = project.maven_group
 
 repositories {
@@ -89,4 +117,69 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+if (System.getenv("GITHUB_TOKEN")) {
+	githubRelease {
+		owner = project.github_repo_user
+		repo = project.github_repo_name
+		tagName = project.version
+		releaseName = "Release ${project.version}"
+		targetCommitish = "1.17"
+		draft = false
+		body = getChangelog(null)
+		token System.getenv("GITHUB_TOKEN")
+		releaseAssets.from(remapJar)
+		overwrite = true
+	}
+
+	publish.dependsOn(tasks.githubRelease)
+}
+
+import com.modrinth.minotaur.TaskModrinthUpload
+// TODO: infer from fabric.mod.json?!
+def supportedVersions = ["1.17", "1.17.1"]
+def versionSupportName = "(Fabric 1.17.x)"
+
+task publishModrinth(type: TaskModrinthUpload) {
+	dependsOn remapJar
+	onlyIf {
+		System.getenv("MODRINTH_TOKEN")
+	}
+
+	token = System.getenv("MODRINTH_TOKEN")
+	projectId = project.modrinth_id
+	versionNumber = project.version
+	uploadFile = remapJar
+	for (version in supportedVersions) {
+		addGameVersion(version)
+	}
+	addLoader("fabric")
+	detectLoaders = false
+	versionName = project.mod_version + " " + versionSupportName
+	changelog = getChangelog(project.github_url)
+}
+
+publish.dependsOn(publishModrinth)
+
+if (System.getenv("CURSEFORGE_TOKEN")) {
+	curseforge {
+		apiKey = System.getenv("CURSEFORGE_TOKEN")
+		project {
+			id = project.curseforge_id
+			releaseType = "release"
+
+			mainArtifact(remapJar) {
+				displayName = project.mod_version + " " + versionSupportName
+			}
+			for (version in supportedVersions) {
+				addGameVersion(version)
+			}
+			addGameVersion("Fabric")
+			changelog = getChangelog(project.github_url)
+			changelogType = "markdown"
+		}
+	}
+
+	publish.dependsOn(tasks.named("curseforge"))
 }
