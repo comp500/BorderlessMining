@@ -3,15 +3,15 @@
   "id": "borderlessmining",
   "version": "${version}",
 
-  "name": "Borderless Mining",
-  "description": "Adds a windowed borderless (fullscreen) option",
+  "name": "Borderless Mining (GLFW replacement test)",
+  "description": "GLFW replacement test; see https://github.com/comp500/BorderlessMining/issues/19 for more information. Only runs on Windows!",
   "authors": [
     "comp500"
   ],
   "contact": {
-    "homepage": "https://github.com/comp500/BorderlessMining",
-    "sources": "https://github.com/comp500/BorderlessMining",
-    "issues": "https://github.com/comp500/BorderlessMining/issues"
+    "homepage": "https://github.com/comp500/BorderlessMining/issues/19",
+    "sources": "https://github.com/comp500/BorderlessMining/tree/experiments/glfw-replacement-test",
+    "issues": "https://github.com/comp500/BorderlessMining/issues/19"
   },
 
   "license": "MIT",
@@ -19,16 +19,10 @@
 
   "environment": "client",
   "entrypoints": {
-    "modmenu" : [
-      "link.infra.borderlessmining.config.ModMenuCompat"
-    ]
+	  "preLaunch": [
+		  "link.infra.borderlessmining.GLFWReplace"
+	  ]
   },
-  "mixins": [
-    {
-      "config": "borderlessmining.mixins.json",
-      "environment": "client"
-    }
-  ],
 
   "depends": {
     "fabricloader": ">=0.7.2",
