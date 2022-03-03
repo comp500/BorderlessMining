@@ -9,7 +9,7 @@
   "config.borderlessmining.general.forcemonitor": "Écran",
   "config.borderlessmining.general.forcemonitor.current": "Actuel",
   "config.borderlessmining.general.enabledmac": "Activer sur macOS",
-  "config.borderlessmining.general.enabledmac.tooltip": "Désactivé par défaut sur macOS, parce qu'il a un meilleur support plein écran. Laisser désactivé sur les autres systèmes d'exploitations.",
+  "config.borderlessmining.general.enabledmac.tooltip": "Désactivé par défaut sur macOS, parce qu'il a un meilleur support plein écran. Ce paramètre ne fait rien sur les autres systèmes d'exploitation.",
   "config.borderlessmining.dimensions": "Dimensions",
   "config.borderlessmining.dimensions.enabled": "Utiliser des dimensions personnalisées",
   "config.borderlessmining.dimensions.monitorcoordinates": "Utiliser des coordonées relatives à l'écran",
