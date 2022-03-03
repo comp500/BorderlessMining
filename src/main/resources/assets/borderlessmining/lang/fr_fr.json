@@ -1,0 +1,21 @@
+{
+  "text.borderlessmining.videomodename": "Fenêtré sans bordure",
+  "config.borderlessmining.title": "Configuration de Borderless Mining",
+  "config.borderlessmining.general": "Général",
+  "config.borderlessmining.general.enabled": "Fenêtré sans bordure",
+  "config.borderlessmining.general.enabled.tooltip": "Passe en fenêtré sans bordure quand le plein écran est activé.",
+  "config.borderlessmining.general.videomodeoption": "Option de résolution fenêtré sans bordure",
+  "config.borderlessmining.general.videomodeoption.tooltip": "Ajoute une option au curseur de résolution qui active le mod",
+  "config.borderlessmining.general.forcemonitor": "Écran",
+  "config.borderlessmining.general.forcemonitor.current": "Actuel",
+  "config.borderlessmining.general.enabledmac": "Activer sur macOS",
+  "config.borderlessmining.general.enabledmac.tooltip": "Désactivé par défaut sur macOS, parce qu'il a un meilleur support plein écran. Ce paramètre ne fait rien sur les autres systèmes d'exploitation.",
+  "config.borderlessmining.dimensions": "Dimensions",
+  "config.borderlessmining.dimensions.enabled": "Utiliser des dimensions personnalisées",
+  "config.borderlessmining.dimensions.monitorcoordinates": "Utiliser des coordonées relatives à l'écran",
+  "config.borderlessmining.dimensions.monitorcoordinates.tooltip": "Utiliser des coordonées relatives à l'écran, au lieu d'absolues",
+  "config.borderlessmining.dimensions.x": "Coordonnée en X",
+  "config.borderlessmining.dimensions.y": "Coordonnée en Y",
+  "config.borderlessmining.dimensions.width": "Largeur",
+  "config.borderlessmining.dimensions.height": "Hauteur"
+}
