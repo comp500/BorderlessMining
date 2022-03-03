@@ -9,7 +9,7 @@
   "config.borderlessmining.general.forcemonitor": "Monitor",
   "config.borderlessmining.general.forcemonitor.current": "Current",
   "config.borderlessmining.general.enabledmac": "Enable on macOS",
-  "config.borderlessmining.general.enabledmac.tooltip": "Disabled by default on macOS, as it has better native fullscreen support",
+  "config.borderlessmining.general.enabledmac.tooltip": "Disabled by default on macOS, as it has better native fullscreen support; this option does nothing on other systems",
   "config.borderlessmining.dimensions": "Dimensions",
   "config.borderlessmining.dimensions.enabled": "Use custom dimensions",
   "config.borderlessmining.dimensions.monitorcoordinates": "Use monitor-relative coordinates",
