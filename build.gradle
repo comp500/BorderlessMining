@@ -16,7 +16,7 @@ String getGitVersion(Project project) {
 		if (grgit.describe(tags: true) == "${project.mod_version}+${project.minecraft_version}") {
 			return "${project.mod_version}+${project.minecraft_version}"
 		} else {
-			var dirty = grgit.status().clean ? "" : "-dirty"
+			var dirty = ""
 			return "${project.mod_version}-dev.${grgit.head().abbreviatedId}+${project.minecraft_version}${dirty}"
 		}
 	} else {

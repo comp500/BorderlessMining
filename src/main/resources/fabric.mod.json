@@ -24,6 +24,13 @@
 	  ]
   },
 
+	"mixins": [
+		{
+			"config": "borderlessmining.mixins.json",
+			"environment": "client"
+		}
+	],
+
   "depends": {
     "fabricloader": ">=0.7.2",
     "fabric-resource-loader-v0": "*",
