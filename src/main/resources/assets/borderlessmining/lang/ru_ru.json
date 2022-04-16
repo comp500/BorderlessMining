@@ -1,0 +1,21 @@
+{
+  "text.borderlessmining.videomodename": "Безрамочный режим",
+  "config.borderlessmining.title": "Настройки Borderless Mining",
+  "config.borderlessmining.general": "Основные",
+  "config.borderlessmining.general.enabled": "Безрамочный полноэкранный режим",
+  "config.borderlessmining.general.enabled.tooltip": "Переключение в режим безрамочного окна при разворачивании на полный экран",
+  "config.borderlessmining.general.videomodeoption": "Переключатель в настройках разрешения",
+  "config.borderlessmining.general.videomodeoption.tooltip": "Добавить ползунку управления полноэкранным разрешением возможность активировать безрамочный режим",
+  "config.borderlessmining.general.forcemonitor": "Монитор",
+  "config.borderlessmining.general.forcemonitor.current": "Текущий",
+  "config.borderlessmining.general.enabledmac": "Включить на MacOS",
+  "config.borderlessmining.general.enabledmac.tooltip": "По умолчанию отключено на MacOS из-за хорошей нативной поддержки полноэкранного режима",
+  "config.borderlessmining.dimensions": "Расположение",
+  "config.borderlessmining.dimensions.enabled": "Пользовательские настройки",
+  "config.borderlessmining.dimensions.monitorcoordinates": "Привязка к монитору",
+  "config.borderlessmining.dimensions.monitorcoordinates.tooltip": "Использовать привязку к монитору вместо абсолютных координат",
+  "config.borderlessmining.dimensions.x": "Координата X",
+  "config.borderlessmining.dimensions.y": "Координата Y",
+  "config.borderlessmining.dimensions.width": "Ширина",
+  "config.borderlessmining.dimensions.height": "Высота"
+}
