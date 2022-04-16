@@ -138,8 +138,8 @@ if (System.getenv("GITHUB_TOKEN")) {
 
 import com.modrinth.minotaur.TaskModrinthUpload
 // TODO: infer from fabric.mod.json?!
-def supportedVersions = ["1.18"]
-def versionSupportName = "(Fabric 1.18.x)"
+def supportedVersions = ["1.18.2"]
+def versionSupportName = "(Fabric 1.18.2)"
 
 task publishModrinth(type: TaskModrinthUpload) {
 	dependsOn remapJar
