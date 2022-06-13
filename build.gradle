@@ -139,7 +139,7 @@ if (System.getenv("GITHUB_TOKEN")) {
 import com.modrinth.minotaur.TaskModrinthUpload
 // TODO: infer from fabric.mod.json?!
 def supportedVersions = ["1.19"]
-def versionSupportName = "(Fabric 1.19)"
+def versionSupportName = "(Fabric/Quilt 1.19)"
 
 task publishModrinth(type: TaskModrinthUpload) {
 	dependsOn remapJar
@@ -155,6 +155,7 @@ task publishModrinth(type: TaskModrinthUpload) {
 		addGameVersion(version)
 	}
 	addLoader("fabric")
+	addLoader("quilt")
 	detectLoaders = false
 	versionName = project.mod_version + " " + versionSupportName
 	changelog = getChangelog(project.github_url)
@@ -176,6 +177,7 @@ if (System.getenv("CURSEFORGE_TOKEN")) {
 				addGameVersion(version)
 			}
 			addGameVersion("Fabric")
+			addGameVersion("Quilt")
 			changelog = getChangelog(project.github_url)
 			changelogType = "markdown"
 		}
