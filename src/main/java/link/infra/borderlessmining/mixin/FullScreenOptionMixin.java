@@ -1,61 +1,54 @@
 package link.infra.borderlessmining.mixin;
 
 import link.infra.borderlessmining.config.ConfigHandler;
-import net.minecraft.client.option.DoubleOption;
-import net.minecraft.client.option.FullscreenOption;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.util.Monitor;
-import net.minecraft.client.util.Window;
+import net.minecraft.client.gui.screen.option.VideoOptionsScreen;
+import net.minecraft.client.option.SimpleOption;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArgs;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
-@Mixin(FullscreenOption.class)
+@Mixin(VideoOptionsScreen.class)
 public abstract class FullScreenOptionMixin {
-	// Modify the superconstructor call in FullScreenOption to add an extra option for Borderless Fullscreen
-	@ModifyArgs(at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/DoubleOption;<init>(Ljava/lang/String;DDFLjava/util/function/Function;Ljava/util/function/BiConsumer;Ljava/util/function/BiFunction;)V"), method = "<init>(Lnet/minecraft/client/util/Window;Lnet/minecraft/client/util/Monitor;)V")
-	private static void modifyDoubleOption(Args args, Window window, Monitor monitor) {
+	// Modify the constructor call to add an extra option for Borderless Fullscreen
+	@ModifyArgs(method = "init",
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/SimpleOption;<init>(Ljava/lang/String;Lnet/minecraft/client/option/SimpleOption$TooltipFactoryGetter;Lnet/minecraft/client/option/SimpleOption$ValueTextGetter;Lnet/minecraft/client/option/SimpleOption$Callbacks;Ljava/lang/Object;Ljava/util/function/Consumer;)V"))
+	private void modifyOption(Args args) {
 		if (!ConfigHandler.getInstance().addToVanillaVideoSettings) {
 			return;
 		}
 
 		// Add one extra option at the end for Borderless Windowed
-		double max = args.<Double>get(2) + 1.0;
-		args.set(2, max);
+		SimpleOption.ValidatingIntSliderCallbacks cb = args.get(3);
+		int bmOption = cb.maxInclusive() + 1;
+		args.set(3, new SimpleOption.ValidatingIntSliderCallbacks(cb.minInclusive(), bmOption));
 
-		// Modify the getter/setters to modify Borderless Windowed settings when the last option is set
-		Function<GameOptions, Double> getter = args.get(4);
-		BiConsumer<GameOptions, Double> setter = args.get(5);
-		BiFunction<GameOptions, DoubleOption, Text> desc = args.get(6);
-
-		args.set(4, (Function<GameOptions, Double>) (opts) -> {
-			if (ConfigHandler.getInstance().isEnabledOrPending()) {
-				return max;
+		// Modify the text getter to show Borderless Mining text
+		SimpleOption.ValueTextGetter<Integer> oldTextGetter = args.get(2);
+		args.set(2, (SimpleOption.ValueTextGetter<Integer>) (optionText, value) -> {
+			if (value == bmOption) {
+				return Text.translatable("text.borderlessmining.videomodename");
 			}
-			return getter.apply(opts);
+			return oldTextGetter.toString(optionText, value);
 		});
-		args.set(5, (BiConsumer<GameOptions, Double>) (opts, val) -> {
-			if (val == max) {
+
+		// Change the default based on the existing option selection
+		args.set(4, ConfigHandler.getInstance().isEnabledOrPending() ? bmOption : args.get(4));
+
+		// Update BM settings when the slider is changed
+		Consumer<Integer> oldConsumer = args.get(5);
+		args.set(5, (Consumer<Integer>) value -> {
+			if (value == bmOption) {
 				ConfigHandler.getInstance().setEnabledPending(true);
 				// Set the actual value to "Current"
-				setter.accept(opts, -1.0);
+				oldConsumer.accept(-1);
 			} else {
 				ConfigHandler.getInstance().setEnabledPending(false);
-				setter.accept(opts, val);
+				oldConsumer.accept(value);
 			}
-		});
-		args.set(6, (BiFunction<GameOptions, DoubleOption, Text>) (opts, val) -> {
-			if (val.get(opts) == max) {
-				return new TranslatableText("text.borderlessmining.videomodename");
-			}
-			return desc.apply(opts, val);
 		});
 	}
 }

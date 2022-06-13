@@ -5,16 +5,16 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.screen.narration.NarrationPart;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.option.Option;
+import net.minecraft.client.option.SimpleOption;
 import net.minecraft.client.util.OrderableTooltip;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 
@@ -153,11 +153,11 @@ public abstract class ConfigScreen extends Screen {
 	public abstract void addElements();
 	// Builder methods - should be called in the method you should override
 
-	public void addOption(Option opt) {
+	public void addOption(SimpleOption<?> opt) {
 		entries.addEntry(new ConfigListEntry(Collections.singletonList(opt.createButton(client.options, width / 2 - 155, 0, 310))));
 	}
 
-	public void addOptionsRow(Option opt, Option opt2) {
+	public void addOptionsRow(SimpleOption<?> opt, SimpleOption<?> opt2) {
 		entries.addEntry(new ConfigListEntry(Arrays.asList(
 			opt.createButton(client.options, width / 2 - 155, 0, 150),
 			opt2.createButton(client.options, width / 2 - 155 + 160, 0, 150))));

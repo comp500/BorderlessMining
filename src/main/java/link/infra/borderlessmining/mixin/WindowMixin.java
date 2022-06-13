@@ -77,7 +77,7 @@ public abstract class WindowMixin implements WindowHooks {
 			borderlessFullscreen = newValue;
 			// Kludge to fix fullscreen option button text not changing on F11
 			try {
-				MinecraftClient.getInstance().options.fullscreen = newValue;
+				MinecraftClient.getInstance().options.getFullscreen().setValue(newValue);
 			} catch (Exception ignored) {
 				// Whoops something went wrong here!
 			}

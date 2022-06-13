@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '0.12-SNAPSHOT'
 	id 'maven-publish'
 
 	id "com.github.breadmoirai.github-release" version "2.2.12"
@@ -49,7 +49,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API for testing
-	modRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	// Bundle fabric-resource-loader-v0 for the config GUI
 	modImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
@@ -125,7 +125,7 @@ if (System.getenv("GITHUB_TOKEN")) {
 		repo = project.github_repo_name
 		tagName = project.version
 		releaseName = "Release ${project.version}"
-		targetCommitish = "1.18"
+		targetCommitish = "1.19"
 		draft = false
 		body = getChangelog(null)
 		token System.getenv("GITHUB_TOKEN")
@@ -138,8 +138,8 @@ if (System.getenv("GITHUB_TOKEN")) {
 
 import com.modrinth.minotaur.TaskModrinthUpload
 // TODO: infer from fabric.mod.json?!
-def supportedVersions = ["1.18.2"]
-def versionSupportName = "(Fabric 1.18.2)"
+def supportedVersions = ["1.19"]
+def versionSupportName = "(Fabric 1.19)"
 
 task publishModrinth(type: TaskModrinthUpload) {
 	dependsOn remapJar
