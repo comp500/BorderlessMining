@@ -29,6 +29,7 @@
       "environment": "client"
     }
   ],
+  "accessWidener": "borderlessmining.accesswidener",
 
   "depends": {
     "fabricloader": ">=0.7.2",
