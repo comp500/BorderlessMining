@@ -13,10 +13,10 @@ targetCompatibility = JavaVersion.VERSION_17
 
 String getGitVersion(Project project) {
 	if (grgit != null) {
+		var dirty = grgit.status().clean ? "" : "-dirty"
 		if (grgit.describe(tags: true) == "${project.mod_version}+${project.minecraft_version}") {
-			return "${project.mod_version}+${project.minecraft_version}"
+			return "${project.mod_version}+${project.minecraft_version}${dirty}"
 		} else {
-			var dirty = grgit.status().clean ? "" : "-dirty"
 			return "${project.mod_version}-dev.${grgit.head().abbreviatedId}+${project.minecraft_version}${dirty}"
 		}
 	} else {
