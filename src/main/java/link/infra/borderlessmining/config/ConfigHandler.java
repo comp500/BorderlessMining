@@ -34,7 +34,7 @@ public class ConfigHandler {
 			}
 			if (INSTANCE == null) {
 				INSTANCE = new ConfigHandler();
-				INSTANCE.save(false);
+				INSTANCE.save();
 			}
 			INSTANCE.enabledPending = INSTANCE.enableBorderlessFullscreen;
 		}
@@ -115,31 +115,21 @@ public class ConfigHandler {
 		return enabledDirty ? enabledPending : isEnabled();
 	}
 
-	public boolean isEnabledDirty() {
-		return enabledDirty;
-	}
-
 	public boolean isEnabled() {
 		return enableBorderlessFullscreen && (!MinecraftClient.IS_SYSTEM_MAC || enableMacOS);
 	}
 
 	public void save() {
-		//noinspection ConstantConditions
-		WindowHooks window = (WindowHooks) (Object) MinecraftClient.getInstance().getWindow();
-		save(window.borderlessmining_getFullscreenState());
-	}
-
-	public void save(boolean destFullscreenState) {
 		if (enabledDirty) {
 			//noinspection ConstantConditions
 			WindowHooks window = (WindowHooks) (Object) MinecraftClient.getInstance().getWindow();
-			boolean currentState = window.borderlessmining_getFullscreenState();
 
 			// This must be done before changing window mode/pos/size as changing those restarts FullScreenOptionMixin
 			enableBorderlessFullscreen = enabledPending;
 			enabledDirty = false;
 
-			window.borderlessmining_updateEnabledState(isEnabled(), currentState, destFullscreenState);
+			// Update window state
+			window.borderlessmining_apply();
 		}
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -147,6 +137,12 @@ public class ConfigHandler {
 			gson.toJson(this, ConfigHandler.class, writer);
 		} catch (IOException e) {
 			LOGGER.error("Failed to save configuration", e);
+		}
+	}
+
+	public void saveIfDirty() {
+		if (enabledDirty) {
+			save();
 		}
 	}
 }

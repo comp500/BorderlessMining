@@ -7,8 +7,7 @@
   "client": [
 	  "FullScreenOptionMixin",
 	  "VideoModeFixMixin",
-	  "WindowMixin",
-	  "WindowSettingsMixin"
+	  "WindowMixin"
   ],
   "injectors": {
     "defaultRequire": 1,
