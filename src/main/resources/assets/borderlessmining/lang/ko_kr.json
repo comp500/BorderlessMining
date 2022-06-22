@@ -1,0 +1,21 @@
+{
+  "text.borderlessmining.videomodename": "Borderless Windowed",
+  "config.borderlessmining.title": "Borderless Mining 환경 설정",
+  "config.borderlessmining.general": "일반",
+  "config.borderlessmining.general.enabled": "테두리 없는 전체 화면",
+  "config.borderlessmining.general.enabled.tooltip": "전체 화면 상태일 때 테두리가 없는 전체 화면으로 전환홥니다.",
+  "config.borderlessmining.general.videomodeoption": "전체화면 해상도 옵션",
+  "config.borderlessmining.general.videomodeoption.tooltip": "모드를 활성화하는 전체화면 해상도 슬라이더 옵션을 추가합니다.",
+  "config.borderlessmining.general.forcemonitor": "모니터",
+  "config.borderlessmining.general.forcemonitor.current": "현재",
+  "config.borderlessmining.general.enabledmac": "macOS에서 사용",
+  "config.borderlessmining.general.enabledmac.tooltip": "macOS에서는 기존 전체 화면 지원이 더 뛰어나기 때문에 기본적으로 비활성화 상태입니다. 다른 시스템에서는 아무 효과도 없습니다.",
+  "config.borderlessmining.dimensions": "크기",
+  "config.borderlessmining.dimensions.enabled": "임의 크기 사용",
+  "config.borderlessmining.dimensions.monitorcoordinates": "모니터 상대 좌표 사용",
+  "config.borderlessmining.dimensions.monitorcoordinates.tooltip": "절대 좌표 대신 모니터의 상대 좌표를 사용합니다.",
+  "config.borderlessmining.dimensions.x": "X 좌표",
+  "config.borderlessmining.dimensions.y": "Y 좌표",
+  "config.borderlessmining.dimensions.width": "너비",
+  "config.borderlessmining.dimensions.height": "높이"
+}
