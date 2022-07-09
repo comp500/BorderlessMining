@@ -18,6 +18,8 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Run git status to determine why it is marked dirty
+        run: git status
       - name: Build with Gradle
         run: ./gradlew build
       - name: Cleanup Gradle Cache
