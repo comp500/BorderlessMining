@@ -3,8 +3,8 @@
   "id": "borderlessmining",
   "version": "${version}",
 
-  "name": "Borderless Mining (GLFW replacement test)",
-  "description": "GLFW replacement test; see https://github.com/comp500/BorderlessMining/issues/19 for more information. Only runs on Windows!",
+  "name": "Borderless Mining (DXGI test)",
+  "description": "DXGI test; see https://github.com/comp500/BorderlessMining/issues/19 for more information. Only runs on Windows!",
   "authors": [
     "comp500"
   ],
