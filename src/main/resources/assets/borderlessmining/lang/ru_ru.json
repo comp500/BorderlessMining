@@ -3,7 +3,7 @@
   "config.borderlessmining.title": "Настройки Borderless Mining",
   "config.borderlessmining.general": "Основные",
   "config.borderlessmining.general.enabled": "Безрамочный полноэкранный режим",
-  "config.borderlessmining.general.enabled.tooltip": "Переключение в режим безрамочного окна при разворачивании на полный экран",
+  "config.borderlessmining.general.enabled.tooltip": "Переключение в режим безрамочного\nокна при разворачивании на полный\nэкран",
   "config.borderlessmining.general.videomodeoption": "Переключатель в настройках разрешения",
   "config.borderlessmining.general.videomodeoption.tooltip": "Добавить ползунку управления полноэкранным разрешением возможность активировать безрамочный режим",
   "config.borderlessmining.general.forcemonitor": "Монитор",
