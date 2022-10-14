@@ -5,6 +5,7 @@ import com.sun.jna.platform.win32.COM.Unknown;
 import com.sun.jna.platform.win32.Guid;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
+import com.sun.jna.ptr.PointerByReference;
 
 public class DXGISwapchain extends Unknown {
 	public DXGISwapchain(Pointer ptr) {
@@ -16,7 +17,7 @@ public class DXGISwapchain extends Unknown {
 		return (WinNT.HRESULT) _invokeNativeObject(8, new Object[]{this.getPointer(), SyncInterval, Flags}, WinNT.HRESULT.class);
 	}
 
-	public WinNT.HRESULT GetBuffer(WinDef.UINT Buffer, Guid.REFIID riid, Pointer ppSurface) {
+	public WinNT.HRESULT GetBuffer(WinDef.UINT Buffer, Guid.REFIID riid, PointerByReference ppSurface) {
 		return (WinNT.HRESULT) _invokeNativeObject(9, new Object[]{this.getPointer(), Buffer, riid, ppSurface}, WinNT.HRESULT.class);
 	}
 

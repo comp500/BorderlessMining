@@ -26,7 +26,9 @@ public class DXGLFramebufferMixin {
 	@Shadow public int textureHeight;
 
 	/**
-	 * @author me
+	 * @author comp500
+	 * @reason Flipped texture to render upside down (as DX is Y- whereas GL is Y+)
+	 * Won't be necessary if this is done in DirectX (with an intermediate blit)
 	 */
 	@Overwrite
 	private void drawInternal(int width, int height, boolean disableBlend) {
