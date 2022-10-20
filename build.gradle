@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.10-SNAPSHOT'
+	id 'fabric-loom' version '1.0-SNAPSHOT'
 	id 'maven-publish'
 
 	id "com.github.breadmoirai.github-release" version "2.2.12"
@@ -49,7 +49,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API for testing
-	modRuntime "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	// Bundle fabric-resource-loader-v0 for the config GUI
 	modImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_version))
@@ -61,6 +61,16 @@ dependencies {
 	modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 		exclude(group: "net.fabricmc.fabric-loader")
+	}
+}
+
+sourceSets {
+	main {
+		java {
+			exclude "link/infra/borderlessmining/config"
+			exclude "link/infra/borderlessmining/mixin"
+			exclude "link/infra/borderlessmining/util"
+		}
 	}
 }
 

@@ -22,7 +22,7 @@ public class GLFWReplace implements PreLaunchEntrypoint {
 
 		try {
 			Files.createDirectories(dllCopyPath.getParent());
-			InputStream stream = GLFWReplace.class.getClassLoader().getResourceAsStream("assets/borderlessmining/glfw3.dll");
+			InputStream stream = GLFWReplace.class.getClassLoader().getResourceAsStream("borderlessmining/glfw3.dll");
 			if (stream == null) {
 				LOGGER.error("Failed to read GLFW dll");
 			} else {
