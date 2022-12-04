@@ -5,9 +5,10 @@
   "mixins": [
   ],
   "client": [
-	  "FullScreenOptionMixin",
-	  "VideoModeFixMixin",
-	  "WindowMixin"
+    "FullScreenOptionMixin",
+    "SodiumOptionsMixin",
+    "VideoModeFixMixin",
+    "WindowMixin"
   ],
   "injectors": {
     "defaultRequire": 1,
