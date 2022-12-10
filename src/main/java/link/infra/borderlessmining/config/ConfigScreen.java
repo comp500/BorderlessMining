@@ -7,6 +7,7 @@ import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.screen.narration.NarrationPart;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
@@ -21,7 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import link.infra.borderlessmining.util.UnprotectedButtonWidget;
 
 public abstract class ConfigScreen extends Screen {
 	private final Screen parent;
@@ -37,10 +37,11 @@ public abstract class ConfigScreen extends Screen {
 		entries = new ConfigListWidget(client, width, height, 32, height - 32, 25);
 		addElements();
 		addDrawableChild(entries);
-		addDrawableChild(new UnprotectedButtonWidget(width / 2 - 100, height - 27, 200, 20, ScreenTexts.DONE, (button) -> {
-			save();
-			client.setScreen(parent);
-		}));
+		addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, (button) -> {save(); client.setScreen(parent);})
+			.position(this.width / 2 - 100, this.height - 27)
+			.size(200, 20)
+			.build()
+		);
 	}
 
 	private static class ConfigListWidget extends ElementListWidget<ConfigListEntry> {
