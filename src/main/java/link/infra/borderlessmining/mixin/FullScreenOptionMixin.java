@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public abstract class FullScreenOptionMixin {
 	// Modify the constructor call to add an extra option for Borderless Fullscreen
 	@ModifyArgs(method = "init",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/SimpleOption;<init>(Ljava/lang/String;Lnet/minecraft/client/option/SimpleOption$TooltipFactoryGetter;Lnet/minecraft/client/option/SimpleOption$ValueTextGetter;Lnet/minecraft/client/option/SimpleOption$Callbacks;Ljava/lang/Object;Ljava/util/function/Consumer;)V"))
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/SimpleOption;<init>(Ljava/lang/String;Lnet/minecraft/client/option/SimpleOption$TooltipFactory;Lnet/minecraft/client/option/SimpleOption$ValueTextGetter;Lnet/minecraft/client/option/SimpleOption$Callbacks;Ljava/lang/Object;Ljava/util/function/Consumer;)V"))
 	private void modifyOption(Args args) {
 		if (!ConfigHandler.getInstance().addToVanillaVideoSettings) {
 			return;

@@ -7,12 +7,10 @@ import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.screen.narration.NarrationPart;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.option.SimpleOption;
-import net.minecraft.client.util.OrderableTooltip;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Style;
@@ -22,6 +20,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import link.infra.borderlessmining.util.UnprotectedButtonWidget;
 
 public abstract class ConfigScreen extends Screen {
 	private final Screen parent;
@@ -37,7 +37,7 @@ public abstract class ConfigScreen extends Screen {
 		entries = new ConfigListWidget(client, width, height, 32, height - 32, 25);
 		addElements();
 		addDrawableChild(entries);
-		addDrawableChild(new ButtonWidget(width / 2 - 100, height - 27, 200, 20, ScreenTexts.DONE, (button) -> {
+		addDrawableChild(new UnprotectedButtonWidget(width / 2 - 100, height - 27, 200, 20, ScreenTexts.DONE, (button) -> {
 			save();
 			client.setScreen(parent);
 		}));
@@ -67,19 +67,6 @@ public abstract class ConfigScreen extends Screen {
 			return super.getScrollbarPositionX() + 32;
 		}
 
-		public Element getHoveredButton(int mouseX, int mouseY) {
-			Optional<Element> hovered = hoveredElement(mouseX, mouseY);
-			if (hovered.isPresent()) {
-				List<? extends Element> buttons = ((ConfigListEntry)hovered.get()).children();
-				for (Element button : buttons) {
-					if (button.isMouseOver(mouseX, mouseY)) {
-						return button;
-					}
-				}
-			}
-			return null;
-		}
-
 		public Style getHoveredStyle(int mouseX, int mouseY) {
 			Optional<Element> hovered = hoveredElement(mouseX, mouseY);
 			//noinspection OptionalIsPresent
@@ -100,7 +87,7 @@ public abstract class ConfigScreen extends Screen {
 		@Override
 		public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			for (ClickableWidget widget : buttons) {
-				widget.y = y;
+				widget.setY(y);
 				widget.render(matrices, mouseX, mouseY, tickDelta);
 			}
 		}
@@ -139,10 +126,6 @@ public abstract class ConfigScreen extends Screen {
 	@Override
 	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
 		super.render(matrices, mouseX, mouseY, delta);
-		Element hoveredButton = entries.getHoveredButton(mouseX, mouseY);
-		if (hoveredButton instanceof OrderableTooltip) {
-			renderOrderedTooltip(matrices, ((OrderableTooltip)hoveredButton).getOrderedTooltip(), mouseX, mouseY);
-		}
 		Style hoveredStyle = entries.getHoveredStyle(mouseX, mouseY);
 		if (hoveredStyle != null) {
 			renderTextHoverEffect(matrices, hoveredStyle, mouseX, mouseY);
@@ -253,7 +236,7 @@ public abstract class ConfigScreen extends Screen {
 		private static TextFieldWidget makeField(TextRenderer textRenderer, int x, int y, int width, int height, Text description) {
 			return new TextFieldWidget(textRenderer, x + (width / 2) + 7, y, (width / 2) - 8, height, description) {
 				@Override
-				public void appendNarrations(NarrationMessageBuilder builder) {
+				public void appendClickableNarrations(NarrationMessageBuilder builder) {
 					builder.put(NarrationPart.TITLE, getNarrationMessage()); // Use the narration message which includes the description
 				}
 			};
