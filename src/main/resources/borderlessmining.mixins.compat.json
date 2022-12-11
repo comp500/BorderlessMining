@@ -1,13 +1,11 @@
 {
-  "required": true,
+  "required": false,
   "package": "link.infra.borderlessmining.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
   ],
   "client": [
-    "FullScreenOptionMixin",
-    "VideoModeFixMixin",
-    "WindowMixin"
+    "SodiumOptionsMixin"
   ],
   "injectors": {
     "defaultRequire": 1,

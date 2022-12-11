@@ -27,6 +27,10 @@
     {
       "config": "borderlessmining.mixins.json",
       "environment": "client"
+    },
+    {
+      "config": "borderlessmining.mixins.compat.json",
+      "environment": "client"
     }
   ],
   "accessWidener": "borderlessmining.accesswidener",
