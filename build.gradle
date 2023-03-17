@@ -180,7 +180,7 @@ if (System.getenv("CURSEFORGE_TOKEN")) {
 			}
 			addGameVersion("Fabric")
 			addGameVersion("Quilt")
-			changelog = getChangelog(project.github_url)
+			changelog = getChangelog(project.source_url)
 			changelogType = "markdown"
 		}
 	}
