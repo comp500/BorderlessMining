@@ -131,20 +131,20 @@ public abstract class ConfigScreen extends Screen {
 		if (hoveredStyle != null) {
 			renderTextHoverEffect(matrices, hoveredStyle, mouseX, mouseY);
 		}
-		drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 10, 16777215);
+		drawCenteredTextWithShadow(matrices, this.textRenderer, this.title, this.width / 2, 10, 16777215);
 	}
 
 	public abstract void addElements();
 	// Builder methods - should be called in the method you should override
 
 	public void addOption(SimpleOption<?> opt) {
-		entries.addEntry(new ConfigListEntry(Collections.singletonList(opt.createButton(client.options, width / 2 - 155, 0, 310))));
+		entries.addEntry(new ConfigListEntry(Collections.singletonList(opt.createWidget(client.options, width / 2 - 155, 0, 310))));
 	}
 
 	public void addOptionsRow(SimpleOption<?> opt, SimpleOption<?> opt2) {
 		entries.addEntry(new ConfigListEntry(Arrays.asList(
-			opt.createButton(client.options, width / 2 - 155, 0, 150),
-			opt2.createButton(client.options, width / 2 - 155 + 160, 0, 150))));
+			opt.createWidget(client.options, width / 2 - 155, 0, 150),
+			opt2.createWidget(client.options, width / 2 - 155 + 160, 0, 150))));
 	}
 
 	public static class ConfigListHeader extends ConfigListEntry {
@@ -165,7 +165,7 @@ public abstract class ConfigScreen extends Screen {
 
 		@Override
 		public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-			drawCenteredText(matrices, textRenderer, headerText, width / 2, y + 5, 16777215);
+			drawCenteredTextWithShadow(matrices, textRenderer, headerText, width / 2, y + 5, 16777215);
 		}
 
 		private Style getStyleAt(int mouseX) {
