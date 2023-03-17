@@ -21,6 +21,9 @@
   "entrypoints": {
 	  "preLaunch": [
 		  "link.infra.borderlessmining.GLFWReplace"
+	  ],
+	  "modmenu": [
+		  "link.infra.borderlessmining.dxgl.DXGLTestingMenu"
 	  ]
   },
 

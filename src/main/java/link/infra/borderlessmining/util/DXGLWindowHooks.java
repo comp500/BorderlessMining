@@ -1,7 +1,10 @@
 package link.infra.borderlessmining.util;
 
 import link.infra.borderlessmining.dxgl.DXGLWindow;
+import org.jetbrains.annotations.Nullable;
 
 public interface DXGLWindowHooks {
-	DXGLWindow dxgl_getOffscreenContext();
+	@Nullable DXGLWindow dxgl_getContext();
+	void dxgl_attach(DXGLWindow window);
+	void dxgl_detach();
 }

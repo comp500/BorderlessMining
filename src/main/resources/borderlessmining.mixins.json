@@ -5,8 +5,11 @@
   "mixins": [
   ],
   "client": [
+	  "DXGLDebugHudMixin",
 	  "DXGLFramebufferMixin",
+	  "DXGLMinecraftClientAccessor",
 	  "DXGLMinecraftClientMixin",
+	  "DXGLWindowAccessor",
 	  "DXGLWindowMixin"
   ],
   "injectors": {

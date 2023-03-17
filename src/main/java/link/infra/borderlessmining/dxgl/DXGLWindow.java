@@ -9,19 +9,20 @@ import link.infra.dxjni.*;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.util.Window;
 import org.lwjgl.PointerBuffer;
+import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.opengl.GL32C;
 import org.lwjgl.opengl.WGLNVDXInterop;
 
 public class DXGLWindow {
-	public D3D11Texture2D dxColorBuffer = null;
-	public int colorRenderbuffer = 0;
-	public int targetFramebuffer = 0;
-	public long d3dDevice = 0;
-	public long d3dDeviceGl = 0;
-	public DXGISwapchain d3dSwapchain = null;
-	public long d3dContext = 0;
+	public D3D11Texture2D dxColorBuffer;
+	public int colorRenderbuffer;
+	public int targetFramebuffer;
+	public long d3dDevice;
+	public long d3dDeviceGl;
+	public DXGISwapchain d3dSwapchain;
+	public long d3dContext;
 	public final PointerBuffer d3dTargets = PointerBuffer.allocateDirect(1);
 
 	private final long handle;
@@ -35,22 +36,32 @@ public class DXGLWindow {
 
 	private RenderQueueSkipState skipRenderQueue = RenderQueueSkipState.NONE;
 
+	private static void setupWindowHints() {
+		// Reset hints; create window with no API
+		GLFW.glfwDefaultWindowHints();
+		GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
+		// TODO: check what these do! (un-inline)
+		GLFW.glfwWindowHint(139265, 196609);
+		GLFW.glfwWindowHint(139275, 221185);
+		GLFW.glfwWindowHint(139266, 3);
+		GLFW.glfwWindowHint(139267, 2);
+		GLFW.glfwWindowHint(139272, 204801);
+		GLFW.glfwWindowHint(139270, 1);
+	}
+
 	public DXGLWindow(Window parent) {
 		this.parent = parent;
 
-		// TODO: attach/detach from existing window?
-		GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
-		handle = GLFW.glfwCreateWindow(640, 480, "DXGL offscreen GL context", 0, 0);
-	}
+		setupWindowHints();
+		// TODO: ideally, don't use "getHandle"? (might refer to swapped handle?)
+		long monitor = GLFW.glfwGetWindowMonitor(parent.getHandle());
+		handle = GLFW.glfwCreateWindow(parent.getWidth(), parent.getHeight(), "", monitor, 0);
+		// TODO: handle fullscreen
+		// TODO: migrate attributes?
+		// TODO: set icon
 
-	/**
-	 * Make the GL context of this window current (instead of the parent window)
-	 */
-	public void makeCurrent() {
-		GLFW.glfwMakeContextCurrent(handle);
-
-		// Set up d3d in onscreen context
-		long hWnd = GLFWNativeWin32.glfwGetWin32Window(parent.getHandle());
+		// Set up d3d in created window
+		long hWnd = GLFWNativeWin32.glfwGetWin32Window(handle);
 
 		DXGISwapChainDesc desc = new DXGISwapChainDesc();
 		// Width/Height/RefreshRate inferred from window/monitor
@@ -98,12 +109,8 @@ public class DXGLWindow {
 			colorBufferBuf
 		));
 		dxColorBuffer = new D3D11Texture2D(colorBufferBuf.getValue());
-	}
 
-	/**
-	 * Initialise GL-dependent context (i.e. WGLNVDXInterop); must be run after makeCurrent and GL.createCapabilities
-	 */
-	public void initGL() {
+		// Initialise GL-dependent context (i.e. WGLNVDXInterop); must be run after makeCurrent and GL.createCapabilities
 		d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(d3dDevice);
 		// TODO: this can return 0 (maybe if the d3d+gl adapters don't match?)
 
@@ -169,6 +176,7 @@ public class DXGLWindow {
 		// TODO: waitable object?
 
 		// Register d3d backbuffer as an OpenGL renderbuffer
+		// TODO: try registering fewer times; rolling buffer to mimic swapchain behaviour? check usage flags and how they change?
 		d3dTargets.put(WGLNVDXInterop.wglDXRegisterObjectNV(
 			d3dDeviceGl, Pointer.nativeValue(dxColorBuffer.getPointer()), colorRenderbuffer,
 			GL32C.GL_RENDERBUFFER, WGLNVDXInterop.WGL_ACCESS_WRITE_DISCARD_NV));
@@ -192,5 +200,15 @@ public class DXGLWindow {
 			// Have drawn since last skip; current backbuffer is valid
 			skipRenderQueue = RenderQueueSkipState.SKIP_QUEUE;
 		}
+	}
+
+	public long getHandle() {
+		return handle;
+	}
+
+	public void free() {
+		// TODO: teardown d3d context
+		Callbacks.glfwFreeCallbacks(handle);
+		GLFW.glfwDestroyWindow(handle);
 	}
 }

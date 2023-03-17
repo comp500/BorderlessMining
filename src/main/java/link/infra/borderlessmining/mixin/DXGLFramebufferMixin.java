@@ -2,6 +2,7 @@ package link.infra.borderlessmining.mixin;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import link.infra.borderlessmining.util.DXGLWindowHooks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -59,10 +60,17 @@ public class DXGLFramebufferMixin {
 		Tessellator tessellator = RenderSystem.renderThreadTesselator();
 		BufferBuilder bufferBuilder = tessellator.getBuffer();
 		bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-		bufferBuilder.vertex(0.0, g, 0.0).texture(0.0f, texHeight).color(255, 255, 255, 255).next();
-		bufferBuilder.vertex(f, g, 0.0).texture(texWidth, texHeight).color(255, 255, 255, 255).next();
-		bufferBuilder.vertex(f, 0.0, 0.0).texture(texWidth, 0.0f).color(255, 255, 255, 255).next();
-		bufferBuilder.vertex(0.0, 0.0, 0.0).texture(0.0f, 0.0f).color(255, 255, 255, 255).next();
+		if (((DXGLWindowHooks)(Object)MinecraftClient.getInstance().getWindow()).dxgl_getContext() != null) {
+			bufferBuilder.vertex(0.0, g, 0.0).texture(0.0f, texHeight).color(255, 255, 255, 255).next();
+			bufferBuilder.vertex(f, g, 0.0).texture(texWidth, texHeight).color(255, 255, 255, 255).next();
+			bufferBuilder.vertex(f, 0.0, 0.0).texture(texWidth, 0.0f).color(255, 255, 255, 255).next();
+			bufferBuilder.vertex(0.0, 0.0, 0.0).texture(0.0f, 0.0f).color(255, 255, 255, 255).next();
+		} else {
+			bufferBuilder.vertex(0.0, g, 0.0).texture(0.0f, 0.0f).color(255, 255, 255, 255).next();
+			bufferBuilder.vertex(f, g, 0.0).texture(texWidth, 0.0f).color(255, 255, 255, 255).next();
+			bufferBuilder.vertex(f, 0.0, 0.0).texture(texWidth, texHeight).color(255, 255, 255, 255).next();
+			bufferBuilder.vertex(0.0, 0.0, 0.0).texture(0.0f, texHeight).color(255, 255, 255, 255).next();
+		}
 		bufferBuilder.end();
 		BufferRenderer.postDraw(bufferBuilder);
 		shader.unbind();

@@ -1,7 +1,9 @@
 package link.infra.borderlessmining.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import link.infra.borderlessmining.dxgl.DXGLContextManager;
 import link.infra.borderlessmining.dxgl.DXGLWindow;
+import link.infra.borderlessmining.dxgl.DXGLWindowHelper;
 import link.infra.borderlessmining.util.DXGLWindowHooks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -11,7 +13,9 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.util.MonitorTracker;
 import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.GLFW;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,41 +26,93 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Window.class)
 public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 	// TODO: synthetic? prefixed?
-	private DXGLWindow dxglWindow;
+	private DXGLWindow dxgl_ctx;
+	private long dxgl_origHandle;
 
 	@Override
-	public DXGLWindow dxgl_getOffscreenContext() {
-		return dxglWindow;
+	public DXGLWindow dxgl_getContext() {
+		return dxgl_ctx;
 	}
 
-	@Shadow private boolean vsync;
+	@Shadow
+	private boolean vsync;
+	@Mutable @Shadow @Final
+	private long handle;
+	@Shadow @Final
+	private WindowEventHandler eventHandler;
+
+	@Override
+	public void dxgl_attach(DXGLWindow window) {
+		if (handle == 0) {
+			throw new IllegalStateException("Cannot attach a DXGL context before creating window");
+		}
+		// Migrate GLFW callbacks, placement settings, input modes
+		// note: don't use dxgl_origHandle here, needs to use *last* not original; must be done before hiding window
+		DXGLWindowHelper.migrateCoordinates(handle, window.getHandle());
+		DXGLWindowHelper.migrateCallbacks(handle, window.getHandle());
+		DXGLWindowHelper.migrateInputModes(handle, window.getHandle());
+		DXGLWindowHelper.updateTitles(handle, window.getHandle());
+		// Save the original window handle with OpenGL context
+		if (dxgl_origHandle == 0) {
+			dxgl_origHandle = handle;
+			// Hide window (becomes an offscreen context)
+			// TODO: doesn't work when fullscreen!
+			GLFW.glfwHideWindow(dxgl_origHandle);
+		} else {
+			if (dxgl_ctx != null) {
+				// Clean up if switching d3d windows (detach does not need to be called)
+				if (dxgl_ctx != window) {
+					dxgl_ctx.free();
+				}
+			} else {
+				throw new IllegalStateException("Detached DXGL context not properly destroyed");
+			}
+		}
+		// Change the window handle to that of the d3d window in the DXGL context
+		handle = window.getHandle();
+		dxgl_ctx = window;
+		// Update window focus state (hiding the window makes it become unfocused)
+		eventHandler.onWindowFocusChanged(true);
+	}
+
+	@Override
+	public void dxgl_detach() {
+		// Only has effect if a DXGL context was attached; cleans up to behave identically to a non-DXGL window
+		if (dxgl_origHandle != 0) {
+			// Migrate GLFW callbacks, placement settings, input modes
+			DXGLWindowHelper.migrateCoordinates(handle, dxgl_origHandle);
+			DXGLWindowHelper.migrateCallbacks(handle, dxgl_origHandle);
+			DXGLWindowHelper.migrateInputModes(handle, dxgl_origHandle);
+			DXGLWindowHelper.updateTitles(handle, dxgl_origHandle);
+
+			handle = dxgl_origHandle;
+			// TODO: doesn't work when fullscreen!
+			// Show window (becomes an onscreen context)
+			GLFW.glfwShowWindow(dxgl_origHandle);
+			dxgl_origHandle = 0;
+		}
+		if (dxgl_ctx != null) {
+			dxgl_ctx.free();
+			dxgl_ctx = null;
+		}
+		// Update window focus state (hiding the window makes it become unfocused)
+		eventHandler.onWindowFocusChanged(true);
+	}
 
 	@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"))
 	private void beforeCreatingWindow(WindowEventHandler eventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo ci) {
-		// Create invisible window with existing configured hints
-		dxglWindow = new DXGLWindow((Window) (Object) this);
-		// Reset hints; make primary window be created with no API
-		GLFW.glfwDefaultWindowHints();
-		GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
+		// Ensure initial window (GL context) won't be shown if DXGL is enabled; as it will become an offscreen context
+		if (DXGLContextManager.enabled()) {
+			GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+		}
 	}
 
-	@Redirect(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwMakeContextCurrent(J)V"))
-	private void onMakeContextCurrent(long window) {
-		GLFW.glfwDefaultWindowHints();
-		// TODO: check what these do!
-//		GLFW.glfwWindowHint(139265, 196609);
-//		GLFW.glfwWindowHint(139275, 221185);
-//		GLFW.glfwWindowHint(139266, 3);
-//		GLFW.glfwWindowHint(139267, 2);
-//		GLFW.glfwWindowHint(139272, 204801);
-//		GLFW.glfwWindowHint(139270, 1);
+	// TODO: force initial window to not be fullscreen - GLFW_VISIBLE has no effect in fullscreen!!
 
-		dxglWindow.makeCurrent();
-	}
-
+	@SuppressWarnings("ConstantConditions")
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void afterConstruction(WindowEventHandler eventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo ci) {
-		dxglWindow.initGL();
+		DXGLContextManager.setupContext((Window & DXGLWindowHooks) (Object) this);
 	}
 
 	@Redirect(method = "swapBuffers", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;flipFrame(J)V"))
@@ -64,14 +120,33 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		GLFW.glfwPollEvents();
 		RenderSystem.replayQueue();
 		Tessellator.getInstance().getBuffer().clear();
-		dxglWindow.present(vsync);
+		// Swap buffers using d3d context if active
+		if (dxgl_ctx != null) {
+			dxgl_ctx.present(vsync);
+		} else {
+			GLFW.glfwSwapBuffers(handle);
+		}
 		GLFW.glfwPollEvents();
 	}
 
 	@Inject(method = "onFramebufferSizeChanged", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/WindowEventHandler;onResolutionChanged()V"))
 	private void onOnFramebufferSizeChanged(long window, int width, int height, CallbackInfo ci) {
-		dxglWindow.resize(width, height);
+		// TODO: use windowresolutionchangewrapper?
+		if (dxgl_ctx != null) {
+			dxgl_ctx.resize(width, height);
+		}
 	}
 
-	// TODO: teardown
+	@Inject(method = "close", at = @At("HEAD"))
+	private void onClose(CallbackInfo ci) {
+		// Revert handle to original and clean up DXGL context
+		if (dxgl_origHandle != 0) {
+			handle = dxgl_origHandle;
+			dxgl_origHandle = 0;
+		}
+		if (dxgl_ctx != null) {
+			dxgl_ctx.free();
+			dxgl_ctx = null;
+		}
+	}
 }
