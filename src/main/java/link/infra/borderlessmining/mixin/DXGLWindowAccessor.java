@@ -1,7 +1,9 @@
 package link.infra.borderlessmining.mixin;
 
+import net.minecraft.client.util.MonitorTracker;
 import net.minecraft.client.util.Window;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(Window.class)
@@ -16,4 +18,7 @@ public interface DXGLWindowAccessor {
 	void callOnWindowFocusChanged(long window, boolean focussed);
 	@Invoker
 	void callOnCursorEnterChanged(long window, boolean entered);
+
+	@Accessor
+	MonitorTracker getMonitorTracker();
 }

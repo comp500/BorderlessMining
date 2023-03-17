@@ -2,12 +2,19 @@ package link.infra.borderlessmining.dxgl;
 
 import link.infra.borderlessmining.mixin.DXGLMinecraftClientAccessor;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.Window;
+import net.minecraft.resource.DefaultResourcePack;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.windows.RECT;
 import org.lwjgl.system.windows.User32;
 import org.lwjgl.system.windows.WINDOWPLACEMENT;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.function.BiFunction;
 
 public class DXGLWindowHelper {
@@ -29,22 +36,37 @@ public class DXGLWindowHelper {
 		}
 		long oldMonitor = GLFW.glfwGetWindowMonitor(oldGLFWHandle);
 		long newMonitor = GLFW.glfwGetWindowMonitor(newGLFWHandle);
+		// Ensure the new handle is in a reasonable state
+		if (newMonitor != 0) {
+			throw new IllegalStateException("Should not migrate coordinates to a fullscreen window");
+		}
 		try (MemoryStack stack = MemoryStack.stackPush()) {
 			WINDOWPLACEMENT placement = WINDOWPLACEMENT.callocStack(stack);
 			if (!User32.GetWindowPlacement(oldHwnd, placement)) {
 				throw new RuntimeException("Failed to get placement of previous window for migration (handle " + oldHwnd + ")");
 			}
+
+			// If in fullscreen, need to update fullscreen state
+			if (oldMonitor != 0) {
+				// First relinquish control of the monitor from the old handle (should keep the same coordinates in case drivers do funky heuristics)
+				// TODO: should be using screen coordinates, not workspace coords from windowplacement?
+				RECT coords = placement.rcNormalPosition();
+				GLFW.glfwSetWindowMonitor(oldGLFWHandle, 0, coords.left(), coords.top(),
+					coords.right() - coords.left(), coords.bottom() - coords.top(),
+					GLFW.GLFW_DONT_CARE);
+				// Then give the new handle the old monitor
+				// TODO: use coordinates from video mode?
+				GLFW.glfwSetWindowMonitor(newGLFWHandle, oldMonitor,
+					coords.left(), coords.top(),
+					coords.right() - coords.left(), coords.bottom() - coords.top(),
+					GLFW.GLFW_DONT_CARE); // TODO: refresh rate from Window settings?
+			}
+
+			// Finally update window placement of the new window
+			// TODO: does this update stuff properly???
 			if (!User32.SetWindowPlacement(newHwnd, placement)) {
 				throw new RuntimeException("Failed to set placement of new window for migration (handle " + newHwnd + ")");
 			}
-//			if (oldMonitor != newMonitor && oldMonitor != 0) {
-//				// TODO: should be using screen coordinates, not workspace coords from windowplacement?
-//				RECT coords = placement.rcNormalPosition();
-//				GLFW.glfwSetWindowMonitor(newGLFWHandle, oldMonitor,
-//					coords.left(), coords.top(),
-//					coords.right() - coords.left(), coords.bottom() - coords.top(),
-//					GLFW.GLFW_DONT_CARE); // TODO: refresh rate from Window settings?
-//			}
 		}
 	}
 
@@ -94,5 +116,18 @@ public class DXGLWindowHelper {
 		GLFW.glfwSetWindowTitle(newGLFWHandle, title);
 
 		GLFW.glfwSetWindowTitle(oldGLFWHandle, "Minecraft (DXGL offscreen context)");
+	}
+
+	// TODO: rerun this when exiting fullscreen if not run outside fullscreen - window chrome doesn't exist in fullscreen (so isn't set)
+	public static void fixIcon(Window window) {
+		// Can't fetch the original icon: need to grab it again
+		DefaultResourcePack pack = MinecraftClient.getInstance().getResourcePackProvider().getPack();
+		try {
+			InputStream x16 = pack.open(ResourceType.CLIENT_RESOURCES, new Identifier("icons/icon_16x16.png"));
+			InputStream x32 = pack.open(ResourceType.CLIENT_RESOURCES, new Identifier("icons/icon_32x32.png"));
+			window.setIcon(x16, x32);
+		} catch (IOException err) {
+			// TODO: log err
+		}
 	}
 }

@@ -28,6 +28,7 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 	// TODO: synthetic? prefixed?
 	private DXGLWindow dxgl_ctx;
 	private long dxgl_origHandle;
+	private boolean dxgl_initiallyFullscreen;
 
 	@Override
 	public DXGLWindow dxgl_getContext() {
@@ -40,6 +41,8 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 	private long handle;
 	@Shadow @Final
 	private WindowEventHandler eventHandler;
+	@Shadow
+	private boolean fullscreen;
 
 	@Override
 	public void dxgl_attach(DXGLWindow window) {
@@ -52,11 +55,12 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		DXGLWindowHelper.migrateCallbacks(handle, window.getHandle());
 		DXGLWindowHelper.migrateInputModes(handle, window.getHandle());
 		DXGLWindowHelper.updateTitles(handle, window.getHandle());
+		// TODO: migrate attributes?
 		// Save the original window handle with OpenGL context
 		if (dxgl_origHandle == 0) {
 			dxgl_origHandle = handle;
 			// Hide window (becomes an offscreen context)
-			// TODO: doesn't work when fullscreen!
+			// Note: origHandle should be non-fullscreen at this point
 			GLFW.glfwHideWindow(dxgl_origHandle);
 		} else {
 			if (dxgl_ctx != null) {
@@ -71,6 +75,9 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		// Change the window handle to that of the d3d window in the DXGL context
 		handle = window.getHandle();
 		dxgl_ctx = window;
+		// Fix window icon
+		DXGLWindowHelper.fixIcon((Window) (Object) this);
+		// TODO: Don't run this on initial attach: MinecraftClient.window is unset
 		// Update window focus state (hiding the window makes it become unfocused)
 		eventHandler.onWindowFocusChanged(true);
 	}
@@ -86,8 +93,8 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 			DXGLWindowHelper.updateTitles(handle, dxgl_origHandle);
 
 			handle = dxgl_origHandle;
-			// TODO: doesn't work when fullscreen!
 			// Show window (becomes an onscreen context)
+			// Note: does nothing if handle was fullscreen: making dxgl_origHandle fullscreen shows it
 			GLFW.glfwShowWindow(dxgl_origHandle);
 			dxgl_origHandle = 0;
 		}
@@ -97,12 +104,17 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		}
 		// Update window focus state (hiding the window makes it become unfocused)
 		eventHandler.onWindowFocusChanged(true);
+		// Fix window icon
+		DXGLWindowHelper.fixIcon((Window) (Object) this);
 	}
 
 	@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"))
 	private void beforeCreatingWindow(WindowEventHandler eventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo ci) {
 		// Ensure initial window (GL context) won't be shown if DXGL is enabled; as it will become an offscreen context
 		if (DXGLContextManager.enabled()) {
+			dxgl_initiallyFullscreen = fullscreen;
+			// Fullscreen disabled, as GLFW_VISIBLE has no effect in fullscreen
+			fullscreen = false;
 			GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
 		}
 	}
@@ -112,7 +124,10 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 	@SuppressWarnings("ConstantConditions")
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void afterConstruction(WindowEventHandler eventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo ci) {
-		DXGLContextManager.setupContext((Window & DXGLWindowHooks) (Object) this);
+		if (DXGLContextManager.enabled()) {
+			fullscreen = dxgl_initiallyFullscreen;
+			DXGLContextManager.setupContext((Window & DXGLWindowHooks) (Object) this);
+		}
 	}
 
 	@Redirect(method = "swapBuffers", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;flipFrame(J)V"))

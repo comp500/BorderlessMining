@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 public class DXGLContextManager {
 	public static <T extends Window & DXGLWindowHooks> void setupContext(@NotNull T window) {
 		// TODO: read config options/etc.
-		window.dxgl_attach(new DXGLWindow(window));
+		window.dxgl_attach(new DXGLWindow(window, window.isFullscreen()));
 	}
 
 	public static boolean enabled() {

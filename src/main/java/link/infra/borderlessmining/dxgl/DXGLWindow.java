@@ -5,8 +5,10 @@ import com.sun.jna.platform.win32.COM.COMUtils;
 import com.sun.jna.platform.win32.Guid;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.PointerByReference;
+import link.infra.borderlessmining.mixin.DXGLWindowAccessor;
 import link.infra.dxjni.*;
 import net.minecraft.client.gl.Framebuffer;
+import net.minecraft.client.util.Monitor;
 import net.minecraft.client.util.Window;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.Callbacks;
@@ -49,16 +51,20 @@ public class DXGLWindow {
 		GLFW.glfwWindowHint(139270, 1);
 	}
 
-	public DXGLWindow(Window parent) {
+	public DXGLWindow(Window parent, boolean initiallyFullscreen) {
 		this.parent = parent;
 
 		setupWindowHints();
-		// TODO: ideally, don't use "getHandle"? (might refer to swapped handle?)
-		long monitor = GLFW.glfwGetWindowMonitor(parent.getHandle());
+		long monitor = 0;
+		// True if this is the initial window, and is fullscreen (so no swapping out of fullscreen is necessary)
+		if (initiallyFullscreen) {
+			Monitor monitorInst = ((DXGLWindowAccessor)(Object)parent).getMonitorTracker().getMonitor(GLFW.glfwGetPrimaryMonitor());
+			if (monitorInst != null) {
+				monitor = monitorInst.getHandle();
+			}
+		}
+		// Note that this starts in non-fullscreen when we are migrating an existing window (which should be swapped out of fullscreen first)
 		handle = GLFW.glfwCreateWindow(parent.getWidth(), parent.getHeight(), "", monitor, 0);
-		// TODO: handle fullscreen
-		// TODO: migrate attributes?
-		// TODO: set icon
 
 		// Set up d3d in created window
 		long hWnd = GLFWNativeWin32.glfwGetWin32Window(handle);
