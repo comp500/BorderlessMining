@@ -1,10 +1,10 @@
 plugins {
-	id 'fabric-loom' version '0.12-SNAPSHOT'
+	id 'fabric-loom' version '1.1.+'
 	id 'maven-publish'
 
-	id "com.github.breadmoirai.github-release" version "2.2.12"
+	id "com.github.breadmoirai.github-release" version "2.4.1"
 	id "org.ajoberstar.grgit" version "4.1.0"
-	id "com.modrinth.minotaur" version "1.2.1"
+	id "com.modrinth.minotaur" version "2.+"
 	id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
@@ -14,7 +14,9 @@ targetCompatibility = JavaVersion.VERSION_17
 String getGitVersion(Project project) {
 	if (grgit != null) {
 		var dirty = grgit.status().clean ? "" : "-dirty"
-		if (grgit.describe(tags: true) == "${project.mod_version}+${project.minecraft_version}") {
+		// If we're going to create (or have created) a git tag, don't use dev version
+		var willCreate = System.getenv("EXPECTED_VERSION") !== null && System.getenv("GITHUB_TOKEN")
+		if (willCreate || grgit.describe(tags: true) == "${project.mod_version}+${project.minecraft_version}") {
 			return "${project.mod_version}+${project.minecraft_version}${dirty}"
 		} else {
 			return "${project.mod_version}-dev.${grgit.head().abbreviatedId}+${project.minecraft_version}${dirty}"
@@ -104,13 +106,7 @@ jar {
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			artifact(remapJar) {
-				builtBy remapJar
-			}
-			artifact(sourcesJar) {
-				builtBy remapSourcesJar
-			}
+			from components.java
 		}
 	}
 
@@ -123,49 +119,51 @@ publishing {
 	}
 }
 
+// TODO: infer from fabric.mod.json?!
+def supportedVersions = ["${project.minecraft_version}"]
+def verName = "${project.mod_version} (Fabric/Quilt ${project.minecraft_version})"
+
+// Check version is as expected
+if (System.getenv("EXPECTED_VERSION") !== null) {
+	assert System.getenv("EXPECTED_VERSION") == project.version
+}
+
+publish {
+	doFirst {
+		// Require the user to "expect" a version to publish
+		assert System.getenv("EXPECTED_VERSION") !== null : "EXPECTED_VERSION environment variable must be set to publish"
+	}
+}
+
 if (System.getenv("GITHUB_TOKEN")) {
+	assert System.getenv("GITHUB_REF_NAME")
 	githubRelease {
-		owner = project.github_repo_user
-		repo = project.github_repo_name
+		owner = System.getenv("GITHUB_REPOSITORY_OWNER")
+		repo = System.getenv("GITHUB_REPOSITORY").split("/", 2)[1]
 		tagName = project.version
-		releaseName = "Release ${project.version}"
-		targetCommitish = "1.19"
+		releaseName = verName
+		targetCommitish = System.getenv("GITHUB_REF_NAME")
 		draft = false
 		body = getChangelog(null)
 		token System.getenv("GITHUB_TOKEN")
 		releaseAssets.from(remapJar)
-		overwrite = true
 	}
 
 	publish.dependsOn(tasks.githubRelease)
 }
 
-import com.modrinth.minotaur.TaskModrinthUpload
-// TODO: infer from fabric.mod.json?!
-def supportedVersions = ["1.19.4"]
-def versionSupportName = "(Fabric/Quilt 1.19.4)"
-
-task publishModrinth(type: TaskModrinthUpload) {
-	dependsOn remapJar
-	onlyIf {
-		System.getenv("MODRINTH_TOKEN")
+if (System.getenv("MODRINTH_TOKEN")) {
+	modrinth {
+		projectId = project.archivesBaseName
+		uploadFile = remapJar
+		gameVersions = supportedVersions
+		loaders = ["fabric", "quilt"]
+		versionName = verName
+		changelog = getChangelog(project.source_url)
 	}
 
-	token = System.getenv("MODRINTH_TOKEN")
-	projectId = project.modrinth_id
-	versionNumber = project.version
-	uploadFile = remapJar
-	for (version in supportedVersions) {
-		addGameVersion(version)
-	}
-	addLoader("fabric")
-	addLoader("quilt")
-	detectLoaders = false
-	versionName = project.mod_version + " " + versionSupportName
-	changelog = getChangelog(project.github_url)
+	publish.dependsOn(tasks.modrinth)
 }
-
-publish.dependsOn(publishModrinth)
 
 if (System.getenv("CURSEFORGE_TOKEN")) {
 	curseforge {
@@ -175,7 +173,7 @@ if (System.getenv("CURSEFORGE_TOKEN")) {
 			releaseType = "release"
 
 			mainArtifact(remapJar) {
-				displayName = project.mod_version + " " + versionSupportName
+				displayName = verName
 			}
 			for (version in supportedVersions) {
 				addGameVersion(version)
