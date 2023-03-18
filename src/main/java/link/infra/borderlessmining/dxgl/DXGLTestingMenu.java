@@ -18,7 +18,7 @@ public class DXGLTestingMenu implements ModMenuApi {
 			protected void init() {
 				addDrawableChild(new ButtonWidget(100, 100, 150, 20, new LiteralText("Attach"), widget -> {
 					Window window = MinecraftClient.getInstance().getWindow();
-					((DXGLWindowHooks)(Object)window).dxgl_attach(new DXGLWindow(window, false));
+					DXGLContextManager.setupContext((Window & DXGLWindowHooks) (Object) window, false);
 				}));
 
 				addDrawableChild(new ButtonWidget(100, 130, 150, 20, new LiteralText("Detach"), widget -> {

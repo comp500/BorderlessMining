@@ -10,26 +10,22 @@ import link.infra.dxjni.*;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.util.Monitor;
 import net.minecraft.client.util.Window;
-import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
-import org.lwjgl.opengl.GL32C;
 import org.lwjgl.opengl.WGLNVDXInterop;
 
-public class DXGLWindow {
-	public D3D11Texture2D dxColorBuffer;
-	public int colorRenderbuffer;
-	public int targetFramebuffer;
+public abstract class DXGLWindow {
+	public D3D11Texture2D dxColorBackbuffer;
 	public long d3dDevice;
 	public long d3dDeviceGl;
 	public DXGISwapchain d3dSwapchain;
 	public long d3dContext;
-	public final PointerBuffer d3dTargets = PointerBuffer.allocateDirect(1);
 
-	private final long handle;
+	private long handle;
 	private final Window parent;
 	private DXGLWindowIconState iconState = DXGLWindowIconState.NONE;
+	private final DXGLWindowSettings settings;
 
 	private enum RenderQueueSkipState {
 		NONE,
@@ -52,9 +48,12 @@ public class DXGLWindow {
 		GLFW.glfwWindowHint(139270, 1);
 	}
 
-	public DXGLWindow(Window parent, boolean initiallyFullscreen) {
+	public DXGLWindow(Window parent, DXGLWindowSettings settings) {
 		this.parent = parent;
+		this.settings = settings;
+	}
 
+	public void setup(boolean initiallyFullscreen) {
 		setupWindowHints();
 		long monitor = 0;
 		// True if this is the initial window, and is fullscreen (so no swapping out of fullscreen is necessary)
@@ -77,13 +76,11 @@ public class DXGLWindow {
 		desc.SampleDesc.Count.setValue(1);
 
 		desc.BufferUsage.setValue(DXGISwapChainDesc.DXGI_USAGE_RENDER_TARGET_OUTPUT);
-		desc.BufferCount.setValue(2);
+		desc.BufferCount.setValue(settings.bufferCount());
 		desc.OutputWindow.setPointer(new Pointer(hWnd));
 		desc.Windowed.setValue(1);
-		// TODO: backcompat? FLIP_DISCARD is only w10+
-		desc.SwapEffect.setValue(DXGISwapChainDesc.DXGI_SWAP_EFFECT_FLIP_DISCARD);
-		// TODO: feature test allow tearing
-		desc.Flags.setValue(DXGISwapChainDesc.DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+		desc.SwapEffect.setValue(settings.swapEffect());
+		desc.Flags.setValue(settings.swapchainFlags());
 
 		PointerByReference d3dSwapchainRef = new PointerByReference();
 		PointerByReference deviceRef = new PointerByReference();
@@ -92,7 +89,7 @@ public class DXGLWindow {
 		COMUtils.checkRC(D3D11Library.INSTANCE.D3D11CreateDeviceAndSwapChain(
 			Pointer.NULL, // No adapter
 			new WinDef.UINT(D3D11Library.D3D_DRIVER_TYPE_HARDWARE), new WinDef.HMODULE(), // Use hardware driver (no software DLL)
-			new WinDef.UINT(0), //DXJNIShim.D3D11_CREATE_DEVICE_DEBUG, // Debug flag TODO: make dependent on something else
+			new WinDef.UINT(settings.debug() ? D3D11Library.D3D11_CREATE_DEVICE_DEBUG : 0), // Debug flag
 			Pointer.NULL, // Use default feature levels
 			new WinDef.UINT(0),
 			D3D11Library.D3D11_SDK_VERSION,
@@ -115,14 +112,14 @@ public class DXGLWindow {
 			new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
 			colorBufferBuf
 		));
-		dxColorBuffer = new D3D11Texture2D(colorBufferBuf.getValue());
+		dxColorBackbuffer = new D3D11Texture2D(colorBufferBuf.getValue());
 
 		// Initialise GL-dependent context (i.e. WGLNVDXInterop); must be run after makeCurrent and GL.createCapabilities
 		d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(d3dDevice);
 		// TODO: this can return 0 (maybe if the d3d+gl adapters don't match?)
 
-		targetFramebuffer = GL32C.glGenFramebuffers();
-		colorRenderbuffer = GL32C.glGenRenderbuffers();
+		setupGlBuffers();
+		registerBackbuffer();
 	}
 
 	public void updateIcon() {
@@ -133,8 +130,6 @@ public class DXGLWindow {
 	}
 
 	public void present(boolean vsync) {
-		// TODO: option for >1 vsync
-		// TODO: tearing
 		// DXGI_PRESENT_ALLOW_TEARING can only be used with sync interval 0. It is recommended to always pass this
 		// tearing flag when using sync interval 0 if CheckFeatureSupport reports that tearing is supported and the app
 		// is in a windowed mode - including border-less fullscreen mode. Refer to the DXGI_PRESENT constants for more details.
@@ -145,8 +140,8 @@ public class DXGLWindow {
 		// TODO: https://developer.nvidia.com/dx12-dos-and-donts#swapchains
 
 		// Present frame (using DXGI instead of OpenGL)
-		int syncInterval = vsync ? 1 : 0;
-		int flags = vsync ? 0 : DXJNIShim.DXGI_PRESENT_ALLOW_TEARING;
+		int syncInterval = vsync ? settings.vsyncSyncInterval() : 0;
+		int flags = vsync ? settings.presentFlagsVsync() : settings.presentFlags();
 		if (skipRenderQueue == RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE) {
 			// Don't present (force new draw)
 			// TODO: does this work with framerate limiter?
@@ -156,21 +151,19 @@ public class DXGLWindow {
 			flags |= DXJNIShim.DXGI_PRESENT_RESTART;
 			skipRenderQueue = RenderQueueSkipState.NONE;
 		}
-		// TODO: feature test allow tearing
 		d3dSwapchain.Present(new WinDef.UINT(syncInterval), new WinDef.UINT(flags));
 	}
 
 	public void resize(int width, int height) {
+		unregisterBackbuffer();
 		// TODO: use WindowResolutionChangeWrapper?
-		dxColorBuffer.Release();
+		dxColorBackbuffer.Release();
 		COMUtils.checkRC(d3dSwapchain.ResizeBuffers(
-			// TODO: configurable buffer count?
-			new WinDef.UINT(2),
+			new WinDef.UINT(settings.bufferCount()),
 			new WinDef.UINT(width),
 			new WinDef.UINT(height),
 			new WinDef.UINT(DXGIModeDesc.DXGI_FORMAT_R8G8B8A8_UNORM),
-			// TODO: feature test allow tearing
-			new WinDef.UINT(DXGISwapChainDesc.DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+			new WinDef.UINT(settings.swapchainFlags())
 		));
 
 		PointerByReference colorBufferBuf = new PointerByReference();
@@ -180,35 +173,18 @@ public class DXGLWindow {
 			new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
 			colorBufferBuf
 		));
-		dxColorBuffer = new D3D11Texture2D(colorBufferBuf.getValue());
+		dxColorBackbuffer = new D3D11Texture2D(colorBufferBuf.getValue());
+		registerBackbuffer();
 
 		skipRenderQueue = RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE;
 	}
 
-	// TODO: move to some sort of swapchain class?
 	public void draw(Framebuffer instance, int width, int height) {
 		// TODO: waitable object?
-
-		// Register d3d backbuffer as an OpenGL renderbuffer
-		// TODO: try registering fewer times; rolling buffer to mimic swapchain behaviour? check usage flags and how they change?
-		d3dTargets.put(WGLNVDXInterop.wglDXRegisterObjectNV(
-			d3dDeviceGl, Pointer.nativeValue(dxColorBuffer.getPointer()), colorRenderbuffer,
-			GL32C.GL_RENDERBUFFER, WGLNVDXInterop.WGL_ACCESS_WRITE_DISCARD_NV));
-		d3dTargets.flip();
-
-		// Set up framebuffer and attach d3d backbuffer
-		WGLNVDXInterop.wglDXLockObjectsNV(d3dDeviceGl, d3dTargets);
-		GL32C.glBindFramebuffer(GL32C.GL_FRAMEBUFFER, targetFramebuffer);
-		GL32C.glFramebufferRenderbuffer(GL32C.GL_FRAMEBUFFER, GL32C.GL_COLOR_ATTACHMENT0, GL32C.GL_RENDERBUFFER, colorRenderbuffer);
-
+		bindBackbuffer();
 		// Draw frame
 		instance.draw(width, height);
-
-		// Unwind: unbind the framebuffer, unlock and unregister backbuffer
-		GL32C.glBindFramebuffer(GL32C.GL_FRAMEBUFFER, 0);
-		WGLNVDXInterop.wglDXUnlockObjectsNV(d3dDeviceGl, d3dTargets);
-		WGLNVDXInterop.wglDXUnregisterObjectNV(d3dDeviceGl, d3dTargets.get());
-		d3dTargets.flip();
+		unbindBackbuffer();
 
 		if (skipRenderQueue == RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE) {
 			// Have drawn since last skip; current backbuffer is valid
@@ -216,12 +192,21 @@ public class DXGLWindow {
 		}
 	}
 
+	protected abstract void setupGlBuffers();
+	protected abstract void freeGlBuffers();
+	protected abstract void registerBackbuffer();
+	protected abstract void unregisterBackbuffer();
+	protected abstract void bindBackbuffer();
+	protected abstract void unbindBackbuffer();
+
 	public long getHandle() {
 		return handle;
 	}
 
 	public void free() {
-		// TODO: teardown d3d context
+		unregisterBackbuffer();
+		freeGlBuffers();
+		// TODO: teardown more d3d context
 		Callbacks.glfwFreeCallbacks(handle);
 		GLFW.glfwDestroyWindow(handle);
 	}

@@ -1,13 +1,18 @@
 package link.infra.borderlessmining.dxgl;
 
+import link.infra.borderlessmining.dxgl.strategies.dxbackbuffer.RegisterEveryFrame;
 import link.infra.borderlessmining.util.DXGLWindowHooks;
 import net.minecraft.client.util.Window;
 import org.jetbrains.annotations.NotNull;
 
 public class DXGLContextManager {
-	public static <T extends Window & DXGLWindowHooks> void setupContext(@NotNull T window) {
+
+	public static void setupContext(@NotNull Window window, boolean initiallyFullscreen) {
 		// TODO: read config options/etc.
-		window.dxgl_attach(new DXGLWindow(window, window.isFullscreen()));
+		DXGLWindowSettings settings = new DXGLWindowSettings();
+		DXGLWindow dxglCtx = new RegisterEveryFrame(window, initiallyFullscreen, settings);
+		dxglCtx.setup(initiallyFullscreen);
+		((DXGLWindowHooks)(Object)window).dxgl_attach(dxglCtx);
 	}
 
 	public static boolean enabled() {

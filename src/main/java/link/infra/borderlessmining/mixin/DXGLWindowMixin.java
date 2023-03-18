@@ -137,7 +137,7 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 	private void afterConstruction(WindowEventHandler eventHandler, MonitorTracker monitorTracker, WindowSettings settings, String videoMode, String title, CallbackInfo ci) {
 		if (DXGLContextManager.enabled()) {
 			fullscreen = dxgl_initiallyFullscreen;
-			DXGLContextManager.setupContext((Window & DXGLWindowHooks) (Object) this);
+			DXGLContextManager.setupContext((Window) (Object) this, dxgl_initiallyFullscreen);
 		}
 	}
 
