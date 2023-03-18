@@ -29,6 +29,7 @@ public class DXGLWindow {
 
 	private final long handle;
 	private final Window parent;
+	private DXGLWindowIconState iconState = DXGLWindowIconState.NONE;
 
 	private enum RenderQueueSkipState {
 		NONE,
@@ -122,6 +123,13 @@ public class DXGLWindow {
 
 		targetFramebuffer = GL32C.glGenFramebuffers();
 		colorRenderbuffer = GL32C.glGenRenderbuffers();
+	}
+
+	public void updateIcon() {
+		if (iconState != DXGLWindowIconState.ALL) {
+			DXGLWindowHelper.updateIcon(parent);
+			iconState = parent.isFullscreen() ? DXGLWindowIconState.ONLY_TASKBAR : DXGLWindowIconState.ALL;
+		}
 	}
 
 	public void present(boolean vsync) {

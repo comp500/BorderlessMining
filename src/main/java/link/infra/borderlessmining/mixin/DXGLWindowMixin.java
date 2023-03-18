@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import link.infra.borderlessmining.dxgl.DXGLContextManager;
 import link.infra.borderlessmining.dxgl.DXGLWindow;
 import link.infra.borderlessmining.dxgl.DXGLWindowHelper;
+import link.infra.borderlessmining.dxgl.DXGLWindowIconState;
 import link.infra.borderlessmining.util.DXGLWindowHooks;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -29,6 +30,8 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 	private DXGLWindow dxgl_ctx;
 	private long dxgl_origHandle;
 	private boolean dxgl_initiallyFullscreen;
+	private DXGLWindowIconState dxgl_origIconState;
+	private boolean dxgl_prevFullscreen;
 
 	@Override
 	public DXGLWindow dxgl_getContext() {
@@ -75,8 +78,7 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		// Change the window handle to that of the d3d window in the DXGL context
 		handle = window.getHandle();
 		dxgl_ctx = window;
-		// Fix window icon
-		DXGLWindowHelper.fixIcon((Window) (Object) this);
+		dxgl_updateIcon();
 		// TODO: Don't run this on initial attach: MinecraftClient.window is unset
 		// Update window focus state (hiding the window makes it become unfocused)
 		eventHandler.onWindowFocusChanged(true);
@@ -102,10 +104,18 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 			dxgl_ctx.free();
 			dxgl_ctx = null;
 		}
+		dxgl_updateIcon();
 		// Update window focus state (hiding the window makes it become unfocused)
 		eventHandler.onWindowFocusChanged(true);
-		// Fix window icon
-		DXGLWindowHelper.fixIcon((Window) (Object) this);
+	}
+
+	private void dxgl_updateIcon() {
+		if (dxgl_ctx != null) {
+			dxgl_ctx.updateIcon();
+		} else if (dxgl_origIconState != DXGLWindowIconState.ALL) {
+			DXGLWindowHelper.updateIcon((Window) (Object) this);
+			dxgl_origIconState = fullscreen ? DXGLWindowIconState.ONLY_TASKBAR : DXGLWindowIconState.ALL;
+		}
 	}
 
 	@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lorg/lwjgl/glfw/GLFW;glfwCreateWindow(IILjava/lang/CharSequence;JJ)J"))
@@ -116,10 +126,11 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 			// Fullscreen disabled, as GLFW_VISIBLE has no effect in fullscreen
 			fullscreen = false;
 			GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+			dxgl_origIconState = DXGLWindowIconState.NONE;
+		} else {
+			dxgl_origIconState = DXGLWindowIconState.ALL;
 		}
 	}
-
-	// TODO: force initial window to not be fullscreen - GLFW_VISIBLE has no effect in fullscreen!!
 
 	@SuppressWarnings("ConstantConditions")
 	@Inject(method = "<init>", at = @At("TAIL"))
@@ -150,6 +161,14 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		if (dxgl_ctx != null) {
 			dxgl_ctx.resize(width, height);
 		}
+	}
+
+	@Inject(method = "updateWindowRegion", at = @At(value = "TAIL"))
+	private void onUpdateWindowRegion(CallbackInfo ci) {
+		if (dxgl_prevFullscreen != fullscreen) {
+			dxgl_updateIcon();
+		}
+		dxgl_prevFullscreen = fullscreen;
 	}
 
 	@Inject(method = "close", at = @At("HEAD"))

@@ -6,6 +6,8 @@ import net.minecraft.client.util.Window;
 import net.minecraft.resource.DefaultResourcePack;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.system.MemoryStack;
@@ -18,6 +20,8 @@ import java.io.InputStream;
 import java.util.function.BiFunction;
 
 public class DXGLWindowHelper {
+	private static final Logger LOGGER = LogManager.getLogger(DXGLWindowHelper.class);
+
 	public static void migrateAll() {
 
 	}
@@ -118,8 +122,12 @@ public class DXGLWindowHelper {
 		GLFW.glfwSetWindowTitle(oldGLFWHandle, "Minecraft (DXGL offscreen context)");
 	}
 
-	// TODO: rerun this when exiting fullscreen if not run outside fullscreen - window chrome doesn't exist in fullscreen (so isn't set)
-	public static void fixIcon(Window window) {
+	/**
+	 * Update the icon of the current native window associated with the Window.
+	 * Needs to be re-run when attaching/detaching DXGL, as well as when exiting fullscreen if not previously run in
+	 * fullscreen (when the window chrome is not visible, the title bar icon isn't set).
+	 */
+	public static void updateIcon(Window window) {
 		// Can't fetch the original icon: need to grab it again
 		DefaultResourcePack pack = MinecraftClient.getInstance().getResourcePackProvider().getPack();
 		try {
@@ -127,7 +135,7 @@ public class DXGLWindowHelper {
 			InputStream x32 = pack.open(ResourceType.CLIENT_RESOURCES, new Identifier("icons/icon_32x32.png"));
 			window.setIcon(x16, x32);
 		} catch (IOException err) {
-			// TODO: log err
+			LOGGER.error("Failed to set window icon", err);
 		}
 	}
 }
