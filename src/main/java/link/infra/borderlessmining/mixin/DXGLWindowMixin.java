@@ -51,9 +51,9 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		}
 		// Migrate GLFW callbacks, placement settings, input modes
 		// note: don't use dxgl_origHandle here, needs to use *last* not original; must be done before hiding window
-		DXGLWindowHelper.migrateCoordinates(handle, window.getHandle());
 		DXGLWindowHelper.migrateCallbacks(handle, window.getHandle());
 		DXGLWindowHelper.migrateInputModes(handle, window.getHandle());
+		DXGLWindowHelper.migrateCoordinates(handle, window.getHandle());
 		DXGLWindowHelper.updateTitles(handle, window.getHandle());
 		// TODO: migrate attributes?
 		// Save the original window handle with OpenGL context
@@ -87,9 +87,9 @@ public abstract class DXGLWindowMixin implements DXGLWindowHooks {
 		// Only has effect if a DXGL context was attached; cleans up to behave identically to a non-DXGL window
 		if (dxgl_origHandle != 0) {
 			// Migrate GLFW callbacks, placement settings, input modes
-			DXGLWindowHelper.migrateCoordinates(handle, dxgl_origHandle);
 			DXGLWindowHelper.migrateCallbacks(handle, dxgl_origHandle);
 			DXGLWindowHelper.migrateInputModes(handle, dxgl_origHandle);
+			DXGLWindowHelper.migrateCoordinates(handle, dxgl_origHandle);
 			DXGLWindowHelper.updateTitles(handle, dxgl_origHandle);
 
 			handle = dxgl_origHandle;

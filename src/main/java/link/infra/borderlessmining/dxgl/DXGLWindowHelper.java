@@ -25,6 +25,7 @@ public class DXGLWindowHelper {
 	/**
 	 * Copy placement settings (position, size, maximised, unmaximised position/size) from one window to another
 	 * Also migrates GLFW monitor (for fullscreen)
+	 * Must be called after migrateCallbacks, as the old window might get erroneous framebuffer resizes in fullscreen
 	 * @param oldGLFWHandle The old window (which will be hidden)
 	 * @param newGLFWHandle The new window (about to be shown)
 	 */
@@ -63,7 +64,6 @@ public class DXGLWindowHelper {
 			}
 
 			// Finally update window placement of the new window
-			// TODO: does this update stuff properly???
 			if (!User32.SetWindowPlacement(newHwnd, placement)) {
 				throw new RuntimeException("Failed to set placement of new window for migration (handle " + newHwnd + ")");
 			}
