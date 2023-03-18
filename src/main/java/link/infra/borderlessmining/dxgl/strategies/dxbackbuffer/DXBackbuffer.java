@@ -13,7 +13,7 @@ public abstract class DXBackbuffer extends DXGLWindow {
 	public int targetFramebuffer;
 	public final PointerBuffer d3dTargets = PointerBuffer.allocateDirect(1);
 
-	public DXBackbuffer(Window parent, boolean initiallyFullscreen, DXGLWindowSettings settings) {
+	public DXBackbuffer(Window parent, DXGLWindowSettings settings) {
 		super(parent, settings);
 	}
 

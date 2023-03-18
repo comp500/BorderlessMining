@@ -4,8 +4,8 @@ import link.infra.borderlessmining.dxgl.DXGLWindowSettings;
 import net.minecraft.client.util.Window;
 
 public class RegisterEveryFrame extends DXBackbuffer {
-	public RegisterEveryFrame(Window parent, boolean initiallyFullscreen, DXGLWindowSettings settings) {
-		super(parent, initiallyFullscreen, settings);
+	public RegisterEveryFrame(Window parent, DXGLWindowSettings settings) {
+		super(parent, settings);
 	}
 
 	@Override

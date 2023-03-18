@@ -10,7 +10,7 @@ public class DXGLContextManager {
 	public static void setupContext(@NotNull Window window, boolean initiallyFullscreen) {
 		// TODO: read config options/etc.
 		DXGLWindowSettings settings = new DXGLWindowSettings();
-		DXGLWindow dxglCtx = new RegisterEveryFrame(window, initiallyFullscreen, settings);
+		DXGLWindow dxglCtx = new RegisterEveryFrame(window, settings);
 		dxglCtx.setup(initiallyFullscreen);
 		((DXGLWindowHooks)(Object)window).dxgl_attach(dxglCtx);
 	}
