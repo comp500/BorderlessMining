@@ -1,0 +1,21 @@
+{
+  "text.borderlessmining.videomodename": "Schermo intero in finestra",
+  "config.borderlessmining.title": "Impostazioni Borderless Mining",
+  "config.borderlessmining.general": "Generali",
+  "config.borderlessmining.general.enabled": "Schermo intero senza bordi",
+  "config.borderlessmining.general.enabled.tooltip": "Passa a una finestra a schermo intero senza bordi quando è attiva l'opzione schermo intero",
+  "config.borderlessmining.general.videomodeoption": "Opzioni risoluzioni a schermo intero",
+  "config.borderlessmining.general.videomodeoption.tooltip": "Aggiungi un'opzione allo slider della risoluzione nelle impostazioni che abilita questa mod",
+  "config.borderlessmining.general.forcemonitor": "Schermo",
+  "config.borderlessmining.general.forcemonitor.current": "Corrente",
+  "config.borderlessmining.general.enabledmac": "Abilita su macOS",
+  "config.borderlessmining.general.enabledmac.tooltip": "Disabilitato di default su macOS perchè ha un supporto nativo migliore per Minecraft a schermo intero; questa azione non fà nulla su altri sitemi operativi",
+  "config.borderlessmining.dimensions": "dimensioni",
+  "config.borderlessmining.dimensions.enabled": "Usa dimensioni personalizzate",
+  "config.borderlessmining.dimensions.monitorcoordinates": "Utilizza cordinate relative al monitor",
+  "config.borderlessmining.dimensions.monitorcoordinates.tooltip": "Utilizza cordinate relative al monitor, anzichè assolute",
+  "config.borderlessmining.dimensions.x": "Cordinate X",
+  "config.borderlessmining.dimensions.y": "Cordinate Y",
+  "config.borderlessmining.dimensions.width": "Lunghezza",
+  "config.borderlessmining.dimensions.height": "Altezza"
+}
