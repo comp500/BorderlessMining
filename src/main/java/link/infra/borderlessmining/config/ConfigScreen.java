@@ -86,7 +86,7 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public void render(final DrawContext context, final int index, final int y, final int x, final int entryWidth, final int entryHeight, final int mouseX, final int mouseY, final boolean hovered, final float tickDelta) {
+		public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			for (ClickableWidget widget : buttons) {
 				widget.setY(y);
 				widget.render(context, mouseX, mouseY, tickDelta);
