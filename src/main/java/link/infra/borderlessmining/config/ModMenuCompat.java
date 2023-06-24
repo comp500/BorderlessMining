@@ -77,7 +77,7 @@ public class ModMenuCompat implements ModMenuApi {
 							Codec.INT
 						),
 						currentMonitor,
-						i -> configHandler.forceWindowMonitor = i));
+						i -> configHandler.forceWindowMonitor = i - 1));
 
 					addHeading(Text.translatable("config.borderlessmining.dimensions").formatted(Formatting.BOLD));
 					addOption(SimpleOption.ofBoolean("config.borderlessmining.dimensions.enabled",
