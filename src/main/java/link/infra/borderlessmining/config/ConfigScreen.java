@@ -2,6 +2,7 @@ package link.infra.borderlessmining.config;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.Selectable;
 import net.minecraft.client.gui.screen.Screen;
@@ -12,7 +13,6 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ElementListWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.option.SimpleOption;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.screen.ScreenTexts;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -86,10 +86,10 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+		public void render(DrawContext context, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			for (ClickableWidget widget : buttons) {
 				widget.setY(y);
-				widget.render(matrices, mouseX, mouseY, tickDelta);
+				widget.render(context, mouseX, mouseY, tickDelta);
 			}
 		}
 
@@ -125,13 +125,13 @@ public abstract class ConfigScreen extends Screen {
 	public abstract void save();
 
 	@Override
-	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-		super.render(matrices, mouseX, mouseY, delta);
+	public void render(DrawContext drawContext, int mouseX, int mouseY, float delta) {
+		super.render(drawContext, mouseX, mouseY, delta);
 		Style hoveredStyle = entries.getHoveredStyle(mouseX, mouseY);
 		if (hoveredStyle != null) {
-			renderTextHoverEffect(matrices, hoveredStyle, mouseX, mouseY);
+			drawContext.drawHoverEvent(this.textRenderer, hoveredStyle, mouseX, mouseY);
 		}
-		drawCenteredTextWithShadow(matrices, this.textRenderer, this.title, this.width / 2, 10, 16777215);
+		drawContext.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 16777215);
 	}
 
 	public abstract void addElements();
@@ -164,8 +164,8 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-			drawCenteredTextWithShadow(matrices, textRenderer, headerText, width / 2, y + 5, 16777215);
+		public void render(DrawContext drawContext, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+			drawContext.drawCenteredTextWithShadow(textRenderer, headerText, width / 2, y + 5, 16777215);
 		}
 
 		private Style getStyleAt(int mouseX) {
@@ -261,9 +261,9 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public void render(MatrixStack matrices, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
-			drawTextWithShadow(matrices, textRenderer, textField.getMessage(), this.x, y + 5, 16777215);
-			super.render(matrices, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
+		public void render(DrawContext drawContext, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+			drawContext.drawTextWithShadow(textRenderer, textField.getMessage(), this.x, y + 5, 16777215);
+			super.render(drawContext, index, y, x, entryWidth, entryHeight, mouseX, mouseY, hovered, tickDelta);
 		}
 	}
 
