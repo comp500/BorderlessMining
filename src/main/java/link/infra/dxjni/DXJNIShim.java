@@ -17,6 +17,7 @@ public class DXJNIShim {
 	// TODO: setfullscreenstate? could be useful if people want exclusive fullscreen as an option
 	// TODO: makewindowassociation, to ensure DXGI doesn't interfere with GLFW
 
+	public static final int DXGI_PRESENT_DO_NOT_SEQUENCE = 0x00000002;
 	public static final int DXGI_PRESENT_RESTART = 0x00000004;
 	public static final int DXGI_PRESENT_ALLOW_TEARING = 0x00000200;
 

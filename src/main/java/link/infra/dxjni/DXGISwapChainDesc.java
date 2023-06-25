@@ -10,7 +10,9 @@ public class DXGISwapChainDesc extends Structure {
 	public static final int DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING = 2048;
 
 	public static final int DXGI_USAGE_RENDER_TARGET_OUTPUT = 0x00000020;
+	public static final int DXGI_SWAP_EFFECT_DISCARD = 0;
 	public static final int DXGI_SWAP_EFFECT_SEQUENTIAL = 1;
+	public static final int DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL = 3;
 	public static final int DXGI_SWAP_EFFECT_FLIP_DISCARD = 4;
 
 	public DXGIModeDesc BufferDesc;
