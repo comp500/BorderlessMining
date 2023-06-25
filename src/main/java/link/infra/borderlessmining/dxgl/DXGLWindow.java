@@ -13,12 +13,10 @@ import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
-import org.lwjgl.opengl.GL32C;
 import org.lwjgl.opengl.WGLNVDXInterop;
 
 public abstract class DXGLWindow {
-	public D3D11Texture2D dxColorBackbuffer1;
-	public D3D11Texture2D dxColorBackbuffer2;
+	public D3D11Texture2D dxColorBackbuffer;
 	public D3D11Device d3dDevice;
 	public long d3dDeviceGl;
 	public DXGISwapchain d3dSwapchain;
@@ -110,26 +108,14 @@ public abstract class DXGLWindow {
 		d3dSwapchain = new DXGISwapchain(d3dSwapchainRef.getValue());
 		d3dContext = new D3D11DeviceContext(contextRef.getValue());
 
-		{
-			PointerByReference colorBufferBuf = new PointerByReference();
-			// Get swapchain backbuffer as an ID3D11Texture2D
-			COMUtils.checkRC(d3dSwapchain.GetBuffer(
-				new WinDef.UINT(0),
-				new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
-				colorBufferBuf
-			));
-			dxColorBackbuffer1 = new D3D11Texture2D(colorBufferBuf.getValue());
-		}
-		{
-			PointerByReference colorBufferBuf = new PointerByReference();
-			// Get swapchain backbuffer as an ID3D11Texture2D
-			COMUtils.checkRC(d3dSwapchain.GetBuffer(
-				new WinDef.UINT(1),
-				new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
-				colorBufferBuf
-			));
-			dxColorBackbuffer2 = new D3D11Texture2D(colorBufferBuf.getValue());
-		}
+		PointerByReference colorBufferBuf = new PointerByReference();
+		// Get swapchain backbuffer as an ID3D11Texture2D
+		COMUtils.checkRC(d3dSwapchain.GetBuffer(
+			new WinDef.UINT(0),
+			new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
+			colorBufferBuf
+		));
+		dxColorBackbuffer = new D3D11Texture2D(colorBufferBuf.getValue());
 
 		// Initialise GL-dependent context (i.e. WGLNVDXInterop); must be run after makeCurrent and GL.createCapabilities
 		d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(Pointer.nativeValue(d3dDevice.getPointer()));
@@ -137,7 +123,6 @@ public abstract class DXGLWindow {
 
 		setupGlBuffers();
 		registerBackbuffer();
-		System.out.println(dxColorBackbuffer1.getPointer() + " " + dxColorBackbuffer2.getPointer());
 	}
 
 	public void updateIcon() {
@@ -145,54 +130,6 @@ public abstract class DXGLWindow {
 			DXGLWindowHelper.updateIcon(parent);
 			iconState = parent.isFullscreen() ? DXGLWindowIconState.ONLY_TASKBAR : DXGLWindowIconState.ALL;
 		}
-	}
-
-	private void recreateDevice() {
-		System.out.println("releasing ctx");
-		d3dContext.Release();
-		System.out.println("releasing swapchain");
-		d3dSwapchain.Release();
-		System.out.println("releasing device");
-		d3dDevice.Release();
-		System.out.println("releasing done");
-
-		long hWnd = GLFWNativeWin32.glfwGetWin32Window(handle);
-
-		DXGISwapChainDesc desc = new DXGISwapChainDesc();
-		// Width/Height/RefreshRate inferred from window/monitor
-		desc.BufferDesc.Format.setValue(DXGIModeDesc.DXGI_FORMAT_R8G8B8A8_UNORM);
-		// Default sampler mode (no multisampling)
-		desc.SampleDesc.Count.setValue(1);
-
-		desc.BufferUsage.setValue(DXGISwapChainDesc.DXGI_USAGE_RENDER_TARGET_OUTPUT);
-		desc.BufferCount.setValue(settings.bufferCount());
-		desc.OutputWindow.setPointer(new Pointer(hWnd));
-		desc.Windowed.setValue(1);
-		desc.SwapEffect.setValue(settings.swapEffect());
-		desc.Flags.setValue(settings.swapchainFlags());
-
-		PointerByReference d3dSwapchainRef = new PointerByReference();
-		PointerByReference deviceRef = new PointerByReference();
-		PointerByReference contextRef = new PointerByReference();
-
-		COMUtils.checkRC(D3D11Library.INSTANCE.D3D11CreateDeviceAndSwapChain(
-			Pointer.NULL, // No adapter
-			new WinDef.UINT(D3D11Library.D3D_DRIVER_TYPE_HARDWARE), new WinDef.HMODULE(), // Use hardware driver (no software DLL)
-			new WinDef.UINT(settings.debug() ? D3D11Library.D3D11_CREATE_DEVICE_DEBUG : 0), // Debug flag
-			Pointer.NULL, // Use default feature levels
-			new WinDef.UINT(0),
-			D3D11Library.D3D11_SDK_VERSION,
-			desc,
-			d3dSwapchainRef,
-			deviceRef,
-			new WinDef.UINTByReference(), // No need to get used feature level
-			contextRef
-		));
-
-		// TODO: wrapper class?
-		d3dDevice = new D3D11Device(deviceRef.getValue());
-		d3dSwapchain = new DXGISwapchain(d3dSwapchainRef.getValue());
-		d3dContext = new D3D11DeviceContext(contextRef.getValue());
 	}
 
 	public void present(boolean vsync) {
@@ -221,22 +158,9 @@ public abstract class DXGLWindow {
 	}
 
 	public void resize(int width, int height) {
-		new Exception("resizing").printStackTrace();
-		System.out.println("resizing");
 		unregisterBackbuffer();
-		freeGlBuffers();
-		GL32C.glFinish();
-		if (WGLNVDXInterop.wglDXCloseDeviceNV(d3dDeviceGl)) {
-			System.out.println("successfully closed device");
-		}
-		System.out.println("unregistered");
 		// TODO: use WindowResolutionChangeWrapper?
-		dxColorBackbuffer1.Release();
-		dxColorBackbuffer2.Release();
-		System.out.println("released");
-		d3dContext.ClearState();
-		d3dContext.Flush();
-		D3D11Debug.fromDevice(d3dDevice).ReportLiveDeviceObjects(new WinDef.UINT(2));
+		dxColorBackbuffer.Release();
 		COMUtils.checkRC(d3dSwapchain.ResizeBuffers(
 			new WinDef.UINT(settings.bufferCount()),
 			new WinDef.UINT(width),
@@ -244,45 +168,18 @@ public abstract class DXGLWindow {
 			new WinDef.UINT(DXGIModeDesc.DXGI_FORMAT_R8G8B8A8_UNORM),
 			new WinDef.UINT(settings.swapchainFlags())
 		));
-		//recreateDevice();
 
-		COMUtils.checkRC(d3dSwapchain.Present(new WinDef.UINT(0), new WinDef.UINT(0)));
-		COMUtils.checkRC(d3dSwapchain.Present(new WinDef.UINT(0), new WinDef.UINT(0)));
-		COMUtils.checkRC(d3dSwapchain.Present(new WinDef.UINT(0), new WinDef.UINT(0)));
-		COMUtils.checkRC(d3dSwapchain.Present(new WinDef.UINT(0), new WinDef.UINT(0)));
-
-		{
-			PointerByReference colorBufferBuf = new PointerByReference();
-			// Get swapchain backbuffer as an ID3D11Texture2D
-			COMUtils.checkRC(d3dSwapchain.GetBuffer(
-				new WinDef.UINT(0),
-				new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
-				colorBufferBuf
-			));
-			dxColorBackbuffer1 = new D3D11Texture2D(colorBufferBuf.getValue());
-		}
-		{
-			PointerByReference colorBufferBuf = new PointerByReference();
-			// Get swapchain backbuffer as an ID3D11Texture2D
-			COMUtils.checkRC(d3dSwapchain.GetBuffer(
-				new WinDef.UINT(1),
-				new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
-				colorBufferBuf
-			));
-			dxColorBackbuffer2 = new D3D11Texture2D(colorBufferBuf.getValue());
-		}
-		System.out.println(dxColorBackbuffer1.getPointer() + " " + dxColorBackbuffer2.getPointer());
-		System.out.println("got bufs");
-		d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(Pointer.nativeValue(d3dDevice.getPointer()));
-		if (d3dDeviceGl != 0) {
-			System.out.println("opened interop device");
-		}
-
-		setupGlBuffers();
+		PointerByReference colorBufferBuf = new PointerByReference();
+		// Get swapchain backbuffer as an ID3D11Texture2D
+		COMUtils.checkRC(d3dSwapchain.GetBuffer(
+			new WinDef.UINT(0),
+			new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
+			colorBufferBuf
+		));
+		dxColorBackbuffer = new D3D11Texture2D(colorBufferBuf.getValue());
 		registerBackbuffer();
-		System.out.println("reregistered");
 
-		//skipRenderQueue = RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE;
+		skipRenderQueue = RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE;
 	}
 
 	public void draw(Framebuffer instance, int width, int height) {
