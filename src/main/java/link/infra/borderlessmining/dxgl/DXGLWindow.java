@@ -3,7 +3,9 @@ package link.infra.borderlessmining.dxgl;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.COM.COMUtils;
 import com.sun.jna.platform.win32.Guid;
+import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.PointerByReference;
 import link.infra.borderlessmining.mixin.DXGLWindowAccessor;
 import link.infra.dxjni.*;
@@ -13,17 +15,16 @@ import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
-import org.lwjgl.opengl.WGLNVDXInterop;
+import org.lwjgl.opengl.GL32C;
 
 public abstract class DXGLWindow {
-	public D3D11Texture2D dxColorBackbuffer;
-	public D3D11Device d3dDevice;
-	public long d3dDeviceGl;
-	public DXGISwapchain d3dSwapchain;
-	public D3D11DeviceContext d3dContext;
-
-	// TODO cleanup
-	public int time = 0;
+	public D3D12Resource dxColorBackbuffer;
+	public D3D12Device d3dDevice;
+	public DXGISwapchain3 d3dSwapchain;
+	public D3D12CommandQueue d3dCommandQueue;
+	public D3D12Fence fence;
+	public long fenceValue = 0;
+	public WinNT.HANDLE fenceEvent;
 
 	private long handle;
 	private final Window parent;
@@ -72,57 +73,72 @@ public abstract class DXGLWindow {
 		// Set up d3d in created window
 		long hWnd = GLFWNativeWin32.glfwGetWin32Window(handle);
 
-		DXGISwapChainDesc desc = new DXGISwapChainDesc();
+		DXGISwapChainDesc1 desc = new DXGISwapChainDesc1();
 		// Width/Height/RefreshRate inferred from window/monitor
-		desc.BufferDesc.Format.setValue(DXGIModeDesc.DXGI_FORMAT_R8G8B8A8_UNORM);
+		desc.Format.setValue(DXGIModeDesc.DXGI_FORMAT_R8G8B8A8_UNORM);
 		// Default sampler mode (no multisampling)
 		desc.SampleDesc.Count.setValue(1);
 
 		desc.BufferUsage.setValue(DXGISwapChainDesc.DXGI_USAGE_RENDER_TARGET_OUTPUT);
 		desc.BufferCount.setValue(settings.bufferCount());
-		desc.OutputWindow.setPointer(new Pointer(hWnd));
-		desc.Windowed.setValue(1);
 		desc.SwapEffect.setValue(settings.swapEffect());
 		desc.Flags.setValue(settings.swapchainFlags());
 
 		PointerByReference d3dSwapchainRef = new PointerByReference();
 		PointerByReference deviceRef = new PointerByReference();
-		PointerByReference contextRef = new PointerByReference();
 
-		COMUtils.checkRC(D3D11Library.INSTANCE.D3D11CreateDeviceAndSwapChain(
+		// TODO: enum adapters by Luid / perf preference?
+		COMUtils.checkRC(D3D12Library.INSTANCE.D3D12CreateDevice(
 			Pointer.NULL, // No adapter
-			new WinDef.UINT(D3D11Library.D3D_DRIVER_TYPE_HARDWARE), new WinDef.HMODULE(), // Use hardware driver (no software DLL)
-			new WinDef.UINT(settings.debug() ? D3D11Library.D3D11_CREATE_DEVICE_DEBUG : 0), // Debug flag
-			Pointer.NULL, // Use default feature levels
-			new WinDef.UINT(0),
-			D3D11Library.D3D11_SDK_VERSION,
-			desc,
-			d3dSwapchainRef,
-			deviceRef,
-			new WinDef.UINTByReference(), // No need to get used feature level
-			contextRef
+			D3D12Library.D3D_FEATURE_LEVEL_11_0, // Lowest feature level D3D12 supports
+			new Guid.REFIID(D3D12Device.IID_ID3D12Device),
+			deviceRef
 		));
 
-		// TODO: wrapper class?
-		d3dDevice = new D3D11Device(deviceRef.getValue());
-		d3dSwapchain = new DXGISwapchain(d3dSwapchainRef.getValue());
-		d3dContext = new D3D11DeviceContext(contextRef.getValue());
+		d3dDevice = new D3D12Device(deviceRef.getValue());
+
+		PointerByReference factoryRef = new PointerByReference();
+		COMUtils.checkRC(DXGILibrary.INSTANCE.CreateDXGIFactory1(new Guid.REFIID(DXGIFactory4.IID_IDXGIFactory4), factoryRef));
+		DXGIFactory4 factory = new DXGIFactory4(factoryRef.getValue());
+
+		PointerByReference commandQueueRef = new PointerByReference();
+		COMUtils.checkRC(d3dDevice.CreateCommandQueue(new D3D12CommandQueueDesc(),
+			new Guid.REFIID(D3D12CommandQueue.IID_ID3D12CommandQueue), commandQueueRef));
+		d3dCommandQueue = new D3D12CommandQueue(commandQueueRef.getValue());
+
+		COMUtils.checkRC(factory.CreateSwapChainForHwnd(
+			d3dCommandQueue,
+			new WinDef.HWND(new Pointer(hWnd)),
+			desc,
+			Pointer.NULL, // No fullscreen desc (creating a windowed swapchain)
+			Pointer.NULL, // Don't restrict to output
+			d3dSwapchainRef
+		));
+		d3dSwapchain = DXGISwapchain3.fromSwapchain(new DXGISwapchain(d3dSwapchainRef.getValue()));
 
 		PointerByReference colorBufferBuf = new PointerByReference();
-		// Get swapchain backbuffer as an ID3D11Texture2D
+		// Get swapchain backbuffer as an ID3D12Resource
 		COMUtils.checkRC(d3dSwapchain.GetBuffer(
 			new WinDef.UINT(0),
-			new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
+			new Guid.REFIID(D3D12Resource.IID_ID3D12Resource),
 			colorBufferBuf
 		));
-		dxColorBackbuffer = new D3D11Texture2D(colorBufferBuf.getValue());
+		dxColorBackbuffer = new D3D12Resource(colorBufferBuf.getValue());
+		// TODO: get both buffers, swap
+
+		// Set up d3d stop crying fence
+		PointerByReference fenceBuf = new PointerByReference();
+		COMUtils.checkRC(d3dDevice.CreateFence(fenceValue, new WinDef.UINT(0), new Guid.REFIID(D3D12Fence.IID_ID3D12Fence), fenceBuf));
+		fence = new D3D12Fence(fenceBuf.getValue());
+
+		fenceEvent = Kernel32.INSTANCE.CreateEvent(null, false, false, null);
 
 		// Initialise GL-dependent context (i.e. WGLNVDXInterop); must be run after makeCurrent and GL.createCapabilities
-		d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(Pointer.nativeValue(d3dDevice.getPointer()));
+		//d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(Pointer.nativeValue(d3dDevice.getPointer()));
 		// TODO: this can return 0 (maybe if the d3d+gl adapters don't match?)
 
 		setupGlBuffers();
-		registerBackbuffer();
+		registerBackbuffer(getFramebufferWidth(), getFramebufferHeight());
 	}
 
 	public void updateIcon() {
@@ -142,6 +158,8 @@ public abstract class DXGLWindow {
 		// TODO: could look into Special K's Always Present Newest Frame
 		// TODO: https://developer.nvidia.com/dx12-dos-and-donts#swapchains
 
+		GL32C.glFinish();
+
 		// Present frame (using DXGI instead of OpenGL)
 		int syncInterval = vsync ? settings.vsyncSyncInterval() : 0;
 		int flags = vsync ? settings.presentFlagsVsync() : settings.presentFlags();
@@ -154,13 +172,30 @@ public abstract class DXGLWindow {
 			flags |= DXJNIShim.DXGI_PRESENT_RESTART;
 			skipRenderQueue = RenderQueueSkipState.NONE;
 		}
-		d3dSwapchain.Present(new WinDef.UINT(syncInterval), new WinDef.UINT(flags));
+		COMUtils.checkRC(d3dSwapchain.Present(new WinDef.UINT(syncInterval), new WinDef.UINT(flags)));
 	}
 
 	public void resize(int width, int height) {
 		unregisterBackbuffer();
 		// TODO: use WindowResolutionChangeWrapper?
 		dxColorBackbuffer.Release();
+
+		// Set fence to wait for GPU to complete in-flight tasks
+		System.out.println("Original fence " + fenceValue);
+		fenceValue++;
+		long targetFence = fenceValue;
+		System.out.println("Signalling fence " + targetFence);
+		COMUtils.checkRC(d3dCommandQueue.Signal(fence, targetFence));
+		// Wait for fence to be reached
+		if (fence.GetCompletedValue().longValue() < targetFence) {
+			COMUtils.checkRC(fence.SetEventOnCompletion(new WinDef.ULONGLONG(targetFence), fenceEvent));
+			System.out.println("Waiting for fence " + targetFence);
+			Kernel32.INSTANCE.WaitForSingleObject(fenceEvent, Kernel32.INFINITE);
+			System.out.println("Fence " + targetFence + " reached");
+		} else {
+			System.out.println("Fence " + targetFence + " already reached");
+		}
+
 		COMUtils.checkRC(d3dSwapchain.ResizeBuffers(
 			new WinDef.UINT(settings.bufferCount()),
 			new WinDef.UINT(width),
@@ -170,14 +205,14 @@ public abstract class DXGLWindow {
 		));
 
 		PointerByReference colorBufferBuf = new PointerByReference();
-		// Get swapchain backbuffer as an ID3D11Texture2D
+		// Get swapchain backbuffer as an ID3D12Resource
 		COMUtils.checkRC(d3dSwapchain.GetBuffer(
 			new WinDef.UINT(0),
-			new Guid.REFIID(D3D11Texture2D.IID_ID3D11Texture2D),
+			new Guid.REFIID(D3D12Resource.IID_ID3D12Resource),
 			colorBufferBuf
 		));
-		dxColorBackbuffer = new D3D11Texture2D(colorBufferBuf.getValue());
-		registerBackbuffer();
+		dxColorBackbuffer = new D3D12Resource(colorBufferBuf.getValue());
+		registerBackbuffer(width, height);
 
 		skipRenderQueue = RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE;
 	}
@@ -197,13 +232,21 @@ public abstract class DXGLWindow {
 
 	protected abstract void setupGlBuffers();
 	protected abstract void freeGlBuffers();
-	protected abstract void registerBackbuffer();
+	protected abstract void registerBackbuffer(int width, int height);
 	protected abstract void unregisterBackbuffer();
 	protected abstract void bindBackbuffer();
 	protected abstract void unbindBackbuffer();
 
 	public long getHandle() {
 		return handle;
+	}
+
+	public int getFramebufferWidth() {
+		return parent.getFramebufferWidth();
+	}
+
+	public int getFramebufferHeight() {
+		return parent.getFramebufferHeight();
 	}
 
 	public void free() {

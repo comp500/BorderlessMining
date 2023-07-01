@@ -23,7 +23,6 @@ public class DXGLDebugHudMixin {
 			list.add("DXGL " + Formatting.RED + "disabled");
 		} else {
 			list.add("DXGL " + Formatting.GREEN + "enabled");
-			list.add("t " + (ctx.time % 100));
 			// TODO: more debug info
 		}
 	}

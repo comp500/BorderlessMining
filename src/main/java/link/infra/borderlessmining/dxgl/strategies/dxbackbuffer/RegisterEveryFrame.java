@@ -9,19 +9,19 @@ public class RegisterEveryFrame extends DXBackbuffer {
 	}
 
 	@Override
-	protected void registerBackbuffer() {}
+	protected void registerBackbuffer(int width, int height) {}
 	@Override
 	protected void unregisterBackbuffer() {}
 
 	@Override
 	protected void bindBackbuffer() {
-		super.registerBackbuffer();
+		//super.registerBackbuffer(); TODO
 		super.bindBackbuffer();
 	}
 
 	@Override
 	protected void unbindBackbuffer() {
 		super.unbindBackbuffer();
-		super.unregisterBackbuffer();
+		//super.unregisterBackbuffer();
 	}
 }
