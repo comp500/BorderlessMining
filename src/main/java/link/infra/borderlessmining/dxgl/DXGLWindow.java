@@ -17,8 +17,10 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
 import org.lwjgl.opengl.GL32C;
 
-public abstract class DXGLWindow {
-	public D3D12Resource dxColorBackbuffer;
+import java.util.ArrayList;
+import java.util.List;
+
+public class DXGLWindow {
 	public D3D12Device d3dDevice;
 	public DXGISwapchain3 d3dSwapchain;
 	public D3D12CommandQueue d3dCommandQueue;
@@ -30,6 +32,7 @@ public abstract class DXGLWindow {
 	private final Window parent;
 	private DXGLWindowIconState iconState = DXGLWindowIconState.NONE;
 	private final DXGLWindowSettings settings;
+	private final List<DXGLFramebufferD3D12> framebuffers = new ArrayList<>();
 
 	private enum RenderQueueSkipState {
 		NONE,
@@ -57,7 +60,19 @@ public abstract class DXGLWindow {
 		this.settings = settings;
 	}
 
+	private static void featureTest() {
+		int num = GL32C.glGetInteger(GL32C.GL_NUM_EXTENSIONS);
+		List<String> exts = new ArrayList<>();
+		for (int i = 0; i < num; i++) {
+			exts.add(GL32C.glGetStringi(GL32C.GL_EXTENSIONS, i));
+		}
+		if (!exts.contains("GL_EXT_memory_object")) {
+			System.out.println("GL_EXT_memory_object not supported!");
+		}
+	}
+
 	public void setup(boolean initiallyFullscreen) {
+		featureTest();
 		setupWindowHints();
 		long monitor = 0;
 		// True if this is the initial window, and is fullscreen (so no swapping out of fullscreen is necessary)
@@ -116,14 +131,9 @@ public abstract class DXGLWindow {
 		));
 		d3dSwapchain = DXGISwapchain3.fromSwapchain(new DXGISwapchain(d3dSwapchainRef.getValue()));
 
-		PointerByReference colorBufferBuf = new PointerByReference();
-		// Get swapchain backbuffer as an ID3D12Resource
-		COMUtils.checkRC(d3dSwapchain.GetBuffer(
-			new WinDef.UINT(0),
-			new Guid.REFIID(D3D12Resource.IID_ID3D12Resource),
-			colorBufferBuf
-		));
-		dxColorBackbuffer = new D3D12Resource(colorBufferBuf.getValue());
+		for (int i = 0; i < settings.bufferCount(); i++) {
+			framebuffers.add(new DXGLFramebufferD3D12(getFramebufferWidth(), getFramebufferHeight(), i, d3dSwapchain, d3dDevice));
+		}
 		// TODO: get both buffers, swap
 
 		// Set up d3d stop crying fence
@@ -136,9 +146,6 @@ public abstract class DXGLWindow {
 		// Initialise GL-dependent context (i.e. WGLNVDXInterop); must be run after makeCurrent and GL.createCapabilities
 		//d3dDeviceGl = WGLNVDXInterop.wglDXOpenDeviceNV(Pointer.nativeValue(d3dDevice.getPointer()));
 		// TODO: this can return 0 (maybe if the d3d+gl adapters don't match?)
-
-		setupGlBuffers();
-		registerBackbuffer(getFramebufferWidth(), getFramebufferHeight());
 	}
 
 	public void updateIcon() {
@@ -176,9 +183,11 @@ public abstract class DXGLWindow {
 	}
 
 	public void resize(int width, int height) {
-		unregisterBackbuffer();
 		// TODO: use WindowResolutionChangeWrapper?
-		dxColorBackbuffer.Release();
+		for (DXGLFramebufferD3D12 buf : framebuffers) {
+			buf.free();
+		}
+		framebuffers.clear();
 
 		// Set fence to wait for GPU to complete in-flight tasks
 		System.out.println("Original fence " + fenceValue);
@@ -204,38 +213,26 @@ public abstract class DXGLWindow {
 			new WinDef.UINT(settings.swapchainFlags())
 		));
 
-		PointerByReference colorBufferBuf = new PointerByReference();
-		// Get swapchain backbuffer as an ID3D12Resource
-		COMUtils.checkRC(d3dSwapchain.GetBuffer(
-			new WinDef.UINT(0),
-			new Guid.REFIID(D3D12Resource.IID_ID3D12Resource),
-			colorBufferBuf
-		));
-		dxColorBackbuffer = new D3D12Resource(colorBufferBuf.getValue());
-		registerBackbuffer(width, height);
+		for (int i = 0; i < settings.bufferCount(); i++) {
+			framebuffers.add(new DXGLFramebufferD3D12(getFramebufferWidth(), getFramebufferHeight(), i, d3dSwapchain, d3dDevice));
+		}
 
 		skipRenderQueue = RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE;
 	}
 
 	public void draw(Framebuffer instance, int width, int height) {
 		// TODO: waitable object?
-		bindBackbuffer();
+		int bufIdx = d3dSwapchain.GetCurrentBackBufferIndex().intValue();
+		framebuffers.get(bufIdx).bind();
 		// Draw frame
 		instance.draw(width, height);
-		unbindBackbuffer();
+		framebuffers.get(bufIdx).unbind();
 
 		if (skipRenderQueue == RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE) {
 			// Have drawn since last skip; current backbuffer is valid
 			skipRenderQueue = RenderQueueSkipState.SKIP_QUEUE;
 		}
 	}
-
-	protected abstract void setupGlBuffers();
-	protected abstract void freeGlBuffers();
-	protected abstract void registerBackbuffer(int width, int height);
-	protected abstract void unregisterBackbuffer();
-	protected abstract void bindBackbuffer();
-	protected abstract void unbindBackbuffer();
 
 	public long getHandle() {
 		return handle;
@@ -250,8 +247,9 @@ public abstract class DXGLWindow {
 	}
 
 	public void free() {
-		unregisterBackbuffer();
-		freeGlBuffers();
+		for (DXGLFramebufferD3D12 buf : framebuffers) {
+			buf.free();
+		}
 		// TODO: teardown more d3d context
 		Callbacks.glfwFreeCallbacks(handle);
 		GLFW.glfwDestroyWindow(handle);
