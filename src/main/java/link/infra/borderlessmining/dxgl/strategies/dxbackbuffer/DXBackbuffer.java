@@ -13,13 +13,12 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.opengl.EXTMemoryObject;
 import org.lwjgl.opengl.EXTMemoryObjectWin32;
 import org.lwjgl.opengl.GL32C;
-import org.lwjgl.opengl.GL45C;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class DXBackbuffer extends DXGLWindow {
-	public int colorRenderbuffer;
+	public int colorTexture;
 	public int targetFramebuffer;
 	public int dxBackbufferMemoryObject;
 	public final PointerBuffer d3dTargets = PointerBuffer.allocateDirect(1);
@@ -55,8 +54,7 @@ public abstract class DXBackbuffer extends DXGLWindow {
 			System.out.println("GL_EXT_memory_object not supported!");
 		}
 
-		//colorRenderbuffer = GL32C.glGenTextures();
-		colorRenderbuffer = GL45C.glCreateTextures(GL32C.GL_TEXTURE_2D);
+		colorTexture = GL32C.glGenTextures();
 
 		// Register d3d backbuffer as an OpenGL memory object
 		dxBackbufferMemoryObject = EXTMemoryObject.glCreateMemoryObjectsEXT();
@@ -66,32 +64,32 @@ public abstract class DXBackbuffer extends DXGLWindow {
 		EXTMemoryObject.glMemoryObjectParameteriEXT(dxBackbufferMemoryObject, EXTMemoryObject.GL_DEDICATED_MEMORY_OBJECT_EXT, GL32C.GL_TRUE);
 		EXTMemoryObjectWin32.glImportMemoryWin32HandleEXT(dxBackbufferMemoryObject, size,
 			EXTMemoryObjectWin32.GL_HANDLE_TYPE_D3D12_RESOURCE_EXT, Pointer.nativeValue(shareHandle.getValue().getPointer()));
-		System.out.println(GL32C.glGetError());
+		int err = GL32C.glGetError();
+		if (err != GL32C.GL_NO_ERROR) {
+			throw new IllegalStateException("Failed to import DXGI backbuffer as memory object: " + err);
+		}
 		System.out.println("Imported shared handle!");
 
-		// Attach OpenGL renderbuffer to memory object
-		GL32C.glBindTexture(GL32C.GL_TEXTURE_2D, colorRenderbuffer);
-//		GL45C.glTexStorage2D(GL32C.GL_TEXTURE_2D, 1, GL32C.GL_RGBA8, width, height);
+		// Attach OpenGL texture to memory object
+		// Note: Renderbuffers don't seem to work with EXT_external_objects_win32
+		GL32C.glBindTexture(GL32C.GL_TEXTURE_2D, colorTexture);
 		GL32C.glTexParameteri(GL32C.GL_TEXTURE_2D, EXTMemoryObject.GL_TEXTURE_TILING_EXT, EXTMemoryObject.GL_OPTIMAL_TILING_EXT);
 		EXTMemoryObject.glTexStorageMem2DEXT(GL32C.GL_TEXTURE_2D, 1, GL32C.GL_RGBA8, width, height, dxBackbufferMemoryObject, 0);
-//		GL32C.glTexImage2D(GL32C.GL_TEXTURE_2D, 0, GL32C.GL_RGBA,
-//			width, height, 0, GL32C.GL_RGBA, GL32C.GL_UNSIGNED_BYTE, (ByteBuffer) null);
 		GL32C.glTexParameteri(GL32C.GL_TEXTURE_2D, GL32C.GL_TEXTURE_MAG_FILTER, GL32C.GL_LINEAR);
 		GL32C.glTexParameteri(GL32C.GL_TEXTURE_2D, GL32C.GL_TEXTURE_MIN_FILTER, GL32C.GL_LINEAR);
 		GL32C.glTexParameteri(GL32C.GL_TEXTURE_2D, GL32C.GL_TEXTURE_WRAP_S, GL32C.GL_REPEAT);
 		GL32C.glTexParameteri(GL32C.GL_TEXTURE_2D, GL32C.GL_TEXTURE_WRAP_T, GL32C.GL_REPEAT);
-		//EXTMemoryObject.glBufferStorageMemEXT(GL32C.GL_RENDERBUFFER, size, dxBackbufferMemoryObject, 0);
-		//GL32C.glRenderbufferStorage(GL32C.GL_RENDERBUFFER, GL32C.GL_RGBA, width, height);
 		GL32C.glBindTexture(GL32C.GL_TEXTURE_2D, 0);
 
-		System.out.println("Attached renderbuffer to mem obj");
+		System.out.println("Attached texture to mem obj");
 
 		// Attach d3d backbuffer to OpenGL framebuffer
 		GL32C.glBindFramebuffer(GL32C.GL_FRAMEBUFFER, targetFramebuffer);
-		//GL32C.glFramebufferRenderbuffer(GL32C.GL_FRAMEBUFFER, GL32C.GL_COLOR_ATTACHMENT0, GL32C.GL_RENDERBUFFER, colorRenderbuffer);
-		//GL32C.glFramebufferTexture2D(GL32C.GL_FRAMEBUFFER, GL32C.GL_COLOR_ATTACHMENT0, GL32C.GL_TEXTURE_2D, colorRenderbuffer, 0);
-		GL32C.glFramebufferTexture(GL32C.GL_FRAMEBUFFER, GL32C.GL_COLOR_ATTACHMENT0, colorRenderbuffer, 0);
-		System.out.println("Framebuffer status: " + GL32C.glCheckFramebufferStatus(GL32C.GL_FRAMEBUFFER));
+		GL32C.glFramebufferTexture(GL32C.GL_FRAMEBUFFER, GL32C.GL_COLOR_ATTACHMENT0, colorTexture, 0);
+		int status = GL32C.glCheckFramebufferStatus(GL32C.GL_FRAMEBUFFER);
+		if (status != GL32C.GL_FRAMEBUFFER_COMPLETE) {
+			throw new IllegalStateException("Unexpected status when creating framebuffer: " + status);
+		}
 		GL32C.glBindFramebuffer(GL32C.GL_FRAMEBUFFER, 0);
 
 		System.out.println("Attached backbuffer to opengl framebuffer");
@@ -102,7 +100,7 @@ public abstract class DXBackbuffer extends DXGLWindow {
 		//WGLNVDXInterop.wglDXUnregisterObjectNV(d3dDeviceGl, d3dTargets.get());
 		//d3dTargets.flip();
 		// TODO: unbind framebuffers?
-		GL32C.glDeleteTextures(colorRenderbuffer);
+		GL32C.glDeleteTextures(colorTexture);
 		EXTMemoryObject.glDeleteMemoryObjectsEXT(dxBackbufferMemoryObject);
 		// TODO: clean up shared handle?
 	}
