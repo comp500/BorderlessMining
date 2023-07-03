@@ -1,5 +1,6 @@
 package link.infra.borderlessmining.dxgl;
 
+import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.COM.COMUtils;
 import com.sun.jna.platform.win32.Guid;
@@ -116,6 +117,18 @@ public class DXGLWindow {
 		COMUtils.checkRC(DXGILibrary.INSTANCE.CreateDXGIFactory1(new Guid.REFIID(DXGIFactory4.IID_IDXGIFactory4), factoryRef));
 		DXGIFactory4 factory = new DXGIFactory4(factoryRef.getValue());
 
+		// Check device LUID/description (using DXGIAdapter GetDesc)
+		DXGILUID adapterLuid = new DXGILUID();
+		d3dDevice.GetAdapterLuid(adapterLuid.getPointer());
+		adapterLuid.read();
+		PointerByReference adapterRef = new PointerByReference();
+		COMUtils.checkRC(factory.EnumAdapterByLuid(adapterLuid, new Guid.REFIID(DXGIAdapter.IID_IDXGIAdapter), adapterRef));
+		DXGIAdapter adapter = new DXGIAdapter(adapterRef.getValue());
+		DXGIAdapterDesc adapterDesc = new DXGIAdapterDesc();
+		COMUtils.checkRC(adapter.GetDesc(adapterDesc));
+		System.out.println("Created D3D12 device: " + Native.toString(adapterDesc.Description));
+		// TODO: verify LUID matches
+
 		PointerByReference commandQueueRef = new PointerByReference();
 		COMUtils.checkRC(d3dDevice.CreateCommandQueue(new D3D12CommandQueueDesc(),
 			new Guid.REFIID(D3D12CommandQueue.IID_ID3D12CommandQueue), commandQueueRef));
@@ -132,11 +145,11 @@ public class DXGLWindow {
 		d3dSwapchain = DXGISwapchain3.fromSwapchain(new DXGISwapchain(d3dSwapchainRef.getValue()));
 
 		for (int i = 0; i < settings.bufferCount(); i++) {
-			framebuffers.add(new DXGLFramebufferD3D12(getFramebufferWidth(), getFramebufferHeight(), i, d3dSwapchain, d3dDevice));
+			framebuffers.add(new DXGLFramebufferD3D12(getFramebufferWidth(), getFramebufferHeight(), i, d3dSwapchain, d3dDevice, d3dCommandQueue));
 		}
 		// TODO: get both buffers, swap
 
-		// Set up d3d stop crying fence
+		// Set up d3d resize sync fence
 		PointerByReference fenceBuf = new PointerByReference();
 		COMUtils.checkRC(d3dDevice.CreateFence(fenceValue, new WinDef.UINT(0), new Guid.REFIID(D3D12Fence.IID_ID3D12Fence), fenceBuf));
 		fence = new D3D12Fence(fenceBuf.getValue());
@@ -165,7 +178,7 @@ public class DXGLWindow {
 		// TODO: could look into Special K's Always Present Newest Frame
 		// TODO: https://developer.nvidia.com/dx12-dos-and-donts#swapchains
 
-		GL32C.glFinish();
+		// TODO: async frame presentation / D3D resource transitions
 
 		// Present frame (using DXGI instead of OpenGL)
 		int syncInterval = vsync ? settings.vsyncSyncInterval() : 0;
@@ -182,13 +195,7 @@ public class DXGLWindow {
 		COMUtils.checkRC(d3dSwapchain.Present(new WinDef.UINT(syncInterval), new WinDef.UINT(flags)));
 	}
 
-	public void resize(int width, int height) {
-		// TODO: use WindowResolutionChangeWrapper?
-		for (DXGLFramebufferD3D12 buf : framebuffers) {
-			buf.free();
-		}
-		framebuffers.clear();
-
+	private void awaitQueue() {
 		// Set fence to wait for GPU to complete in-flight tasks
 		System.out.println("Original fence " + fenceValue);
 		fenceValue++;
@@ -204,6 +211,16 @@ public class DXGLWindow {
 		} else {
 			System.out.println("Fence " + targetFence + " already reached");
 		}
+	}
+
+	public void resize(int width, int height) {
+		// TODO: use WindowResolutionChangeWrapper?
+		awaitQueue();
+
+		for (DXGLFramebufferD3D12 buf : framebuffers) {
+			buf.free();
+		}
+		framebuffers.clear();
 
 		COMUtils.checkRC(d3dSwapchain.ResizeBuffers(
 			new WinDef.UINT(settings.bufferCount()),
@@ -214,7 +231,7 @@ public class DXGLWindow {
 		));
 
 		for (int i = 0; i < settings.bufferCount(); i++) {
-			framebuffers.add(new DXGLFramebufferD3D12(getFramebufferWidth(), getFramebufferHeight(), i, d3dSwapchain, d3dDevice));
+			framebuffers.add(new DXGLFramebufferD3D12(getFramebufferWidth(), getFramebufferHeight(), i, d3dSwapchain, d3dDevice, d3dCommandQueue));
 		}
 
 		skipRenderQueue = RenderQueueSkipState.SKIP_LAST_DRAW_AND_QUEUE;
@@ -247,6 +264,7 @@ public class DXGLWindow {
 	}
 
 	public void free() {
+		awaitQueue();
 		for (DXGLFramebufferD3D12 buf : framebuffers) {
 			buf.free();
 		}

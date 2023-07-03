@@ -8,6 +8,8 @@ import com.sun.jna.platform.win32.WinNT;
 public class D3D12Fence extends D3D12DeviceChild {
 	public static final Guid.IID IID_ID3D12Fence = new Guid.IID("{0a753dcf-c4d8-4b91-adf6-be5a60d95a76}");
 
+	public static final int D3D12_FENCE_FLAG_SHARED = 0x1;
+
 	public D3D12Fence(Pointer ptr) {
 		super(ptr);
 	}

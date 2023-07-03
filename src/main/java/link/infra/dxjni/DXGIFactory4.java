@@ -17,4 +17,8 @@ public class DXGIFactory4 extends Unknown {
 	public WinNT.HRESULT CreateSwapChainForHwnd(D3D12CommandQueue commandQueue, WinDef.HWND hWnd, DXGISwapChainDesc1 desc, Pointer fullscreenDesc, Pointer restrictToOutput, PointerByReference swapchain) {
 		return (WinNT.HRESULT) _invokeNativeObject(15, new Object[]{this.getPointer(), commandQueue, hWnd, desc, fullscreenDesc, restrictToOutput, swapchain}, WinNT.HRESULT.class);
 	}
+
+	public WinNT.HRESULT EnumAdapterByLuid(DXGILUID AdapterLuid, Guid.REFIID riid, PointerByReference ppvAdapter) {
+		return (WinNT.HRESULT) _invokeNativeObject(26, new Object[]{this.getPointer(), AdapterLuid, riid, ppvAdapter}, WinNT.HRESULT.class);
+	}
 }

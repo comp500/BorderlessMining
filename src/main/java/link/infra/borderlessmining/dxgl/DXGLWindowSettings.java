@@ -20,8 +20,10 @@ public record DXGLWindowSettings(
 			2,
 			DXGISwapChainDesc.DXGI_SWAP_EFFECT_FLIP_DISCARD,
 			DXGISwapChainDesc.DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING,
+			// TODO: always use newest frame / mailbox? (w/ present restart?)
 			DXJNIShim.DXGI_PRESENT_ALLOW_TEARING,
 			0,
+			// TODO: adaptive vsync?
 			1,
 			false
 		);

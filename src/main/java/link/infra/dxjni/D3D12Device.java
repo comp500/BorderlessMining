@@ -19,6 +19,14 @@ public class D3D12Device extends Unknown {
 		return (WinNT.HRESULT) _invokeNativeObject(8, new Object[]{this.getPointer(), desc, riid, commandQueue}, WinNT.HRESULT.class);
 	}
 
+	public WinNT.HRESULT CreateCommandAllocator(WinDef.UINT type, Guid.REFIID riid, PointerByReference commandAllocator) {
+		return (WinNT.HRESULT) _invokeNativeObject(9, new Object[]{this.getPointer(), type, riid, commandAllocator}, WinNT.HRESULT.class);
+	}
+
+	public WinNT.HRESULT CreateCommandList(WinDef.UINT nodeMask, WinDef.UINT type, D3D12CommandAllocator pCommandAllocator, Pointer pInitialState, Guid.REFIID riid, PointerByReference commandList) {
+		return (WinNT.HRESULT) _invokeNativeObject(12, new Object[]{this.getPointer(), nodeMask, type, pCommandAllocator, pInitialState, riid, commandList}, WinNT.HRESULT.class);
+	}
+
 	public D3D12ResourceAllocationInfo GetResourceAllocationInfo(D3D12ResourceAllocationInfo retVal, WinDef.UINT visibleMask, WinDef.UINT numResourceDescs, Pointer pResourceDescs) {
 		return (D3D12ResourceAllocationInfo) _invokeNativeObject(25, new Object[]{this.getPointer(), retVal, visibleMask, numResourceDescs, pResourceDescs}, D3D12ResourceAllocationInfo.class);
 	}
@@ -29,5 +37,9 @@ public class D3D12Device extends Unknown {
 
 	public WinNT.HRESULT CreateFence(long InitialValue, WinDef.UINT Flags, Guid.REFIID riid, PointerByReference ppFence) {
 		return (WinNT.HRESULT) _invokeNativeObject(36, new Object[]{this.getPointer(), InitialValue, Flags, riid, ppFence}, WinNT.HRESULT.class);
+	}
+
+	public void GetAdapterLuid(Pointer RetVal) {
+		_invokeNativeObject(43, new Object[]{this.getPointer(), RetVal}, Pointer.class);
 	}
 }

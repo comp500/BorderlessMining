@@ -90,6 +90,15 @@ java {
 	withSourcesJar()
 }
 
+loom {
+	runs {
+		client {
+			// Don't eat my RAM please!
+			vmArgs "-Xmx1500M"
+		}
+	}
+}
+
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.archivesBaseName}"}

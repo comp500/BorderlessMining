@@ -2,6 +2,7 @@ package link.infra.dxjni;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Guid;
+import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 
 public class D3D12CommandQueue extends D3D12DeviceChild {
@@ -15,7 +16,15 @@ public class D3D12CommandQueue extends D3D12DeviceChild {
 		super();
 	}
 
+	public void ExecuteCommandLists(D3D12GraphicsCommandList[] ppCommandLists) {
+		_invokeNativeObject(10, new Object[]{this.getPointer(), new WinDef.UINT(ppCommandLists.length), ppCommandLists}, void.class);
+	}
+
 	public WinNT.HRESULT Signal(D3D12Fence fence, long fenceValue) {
 		return (WinNT.HRESULT) _invokeNativeObject(14, new Object[]{this.getPointer(), fence, fenceValue}, WinNT.HRESULT.class);
+	}
+
+	public WinNT.HRESULT Wait(D3D12Fence fence, long fenceValue) {
+		return (WinNT.HRESULT) _invokeNativeObject(15, new Object[]{this.getPointer(), fence, fenceValue}, WinNT.HRESULT.class);
 	}
 }
