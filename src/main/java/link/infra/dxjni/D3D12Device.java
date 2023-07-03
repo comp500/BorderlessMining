@@ -27,8 +27,8 @@ public class D3D12Device extends Unknown {
 		return (WinNT.HRESULT) _invokeNativeObject(12, new Object[]{this.getPointer(), nodeMask, type, pCommandAllocator, pInitialState, riid, commandList}, WinNT.HRESULT.class);
 	}
 
-	public D3D12ResourceAllocationInfo GetResourceAllocationInfo(D3D12ResourceAllocationInfo retVal, WinDef.UINT visibleMask, WinDef.UINT numResourceDescs, Pointer pResourceDescs) {
-		return (D3D12ResourceAllocationInfo) _invokeNativeObject(25, new Object[]{this.getPointer(), retVal, visibleMask, numResourceDescs, pResourceDescs}, D3D12ResourceAllocationInfo.class);
+	public D3D12ResourceAllocationInfo GetResourceAllocationInfo(D3D12ResourceAllocationInfo retVal, WinDef.UINT visibleMask, D3D12ResourceDesc[] pResourceDescs) {
+		return (D3D12ResourceAllocationInfo) _invokeNativeObject(25, new Object[]{this.getPointer(), retVal, visibleMask, new WinDef.UINT(pResourceDescs.length), pResourceDescs}, D3D12ResourceAllocationInfo.class);
 	}
 
 	public WinNT.HRESULT CreateSharedHandle(D3D12DeviceChild object, Pointer attributes, WinDef.DWORD access, WTypes.LPWSTR name, WinNT.HANDLEByReference handle) {
@@ -39,7 +39,7 @@ public class D3D12Device extends Unknown {
 		return (WinNT.HRESULT) _invokeNativeObject(36, new Object[]{this.getPointer(), InitialValue, Flags, riid, ppFence}, WinNT.HRESULT.class);
 	}
 
-	public void GetAdapterLuid(Pointer RetVal) {
-		_invokeNativeObject(43, new Object[]{this.getPointer(), RetVal}, Pointer.class);
+	public DXGILUID GetAdapterLuid(DXGILUID RetVal) {
+		return (DXGILUID) _invokeNativeObject(43, new Object[]{this.getPointer(), RetVal}, DXGILUID.class);
 	}
 }

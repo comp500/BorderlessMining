@@ -118,11 +118,9 @@ public class DXGLWindow {
 		DXGIFactory4 factory = new DXGIFactory4(factoryRef.getValue());
 
 		// Check device LUID/description (using DXGIAdapter GetDesc)
-		DXGILUID adapterLuid = new DXGILUID();
-		d3dDevice.GetAdapterLuid(adapterLuid.getPointer());
-		adapterLuid.read();
+		DXGILUID adapterLuid = d3dDevice.GetAdapterLuid(new DXGILUID());
 		PointerByReference adapterRef = new PointerByReference();
-		COMUtils.checkRC(factory.EnumAdapterByLuid(adapterLuid, new Guid.REFIID(DXGIAdapter.IID_IDXGIAdapter), adapterRef));
+		COMUtils.checkRC(factory.EnumAdapterByLuid(adapterLuid.byValue(), new Guid.REFIID(DXGIAdapter.IID_IDXGIAdapter), adapterRef));
 		DXGIAdapter adapter = new DXGIAdapter(adapterRef.getValue());
 		DXGIAdapterDesc adapterDesc = new DXGIAdapterDesc();
 		COMUtils.checkRC(adapter.GetDesc(adapterDesc));

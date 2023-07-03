@@ -10,20 +10,21 @@ import link.infra.dxjni.*;
 import org.lwjgl.opengl.*;
 
 public class DXGLFramebufferD3D12 {
-	private final D3D12GraphicsCommandList commandListTransitionToRenderTarget;
-	private final D3D12GraphicsCommandList commandListTransitionToPresent;
-	private final D3D12GraphicsCommandList[] commandListTransitionToRenderTargetArr;
-	private final D3D12GraphicsCommandList[] commandListTransitionToPresentArr;
-	private final D3D12CommandAllocator allocator;
-
 	private final D3D12Resource dxResource;
 	private final D3D12Fence dxFence;
 	private final D3D12CommandQueue dxCommandQueue;
-	private long fenceValue = 0;
+	private final D3D12GraphicsCommandList dxCommandTransitionToRenderTarget;
+	private final D3D12GraphicsCommandList dxCommandTransitionToPresent;
+	private final D3D12GraphicsCommandList[] dxCommandTransitionToRenderTargetArr;
+	private final D3D12GraphicsCommandList[] dxCommandTransitionToPresentArr;
+	private final D3D12CommandAllocator dxCommandAllocator;
+
 	private final int glTexture;
 	private final int glFramebuffer;
 	private final int glMemoryObject;
 	private final int glSemaphore;
+
+	private long fenceValue = 0;
 
 	public DXGLFramebufferD3D12(int width, int height, int bufferIdx,
 								DXGISwapchain3 dxSwapchain, D3D12Device dxDevice,
@@ -38,7 +39,7 @@ public class DXGLFramebufferD3D12 {
 		dxResource = new D3D12Resource(colorBufferBuf.getValue());
 
 		D3D12ResourceDesc desc = dxResource.GetDesc(new D3D12ResourceDesc());
-		D3D12ResourceAllocationInfo allocInfo = dxDevice.GetResourceAllocationInfo(new D3D12ResourceAllocationInfo(), new WinDef.UINT(0), new WinDef.UINT(1), desc.getPointer());
+		D3D12ResourceAllocationInfo allocInfo = dxDevice.GetResourceAllocationInfo(new D3D12ResourceAllocationInfo(), new WinDef.UINT(0), new D3D12ResourceDesc[]{desc});
 		long size = allocInfo.SizeInBytes.longValue();
 		long sizeOrig = (long) width * height * 4; // RGBA;
 		System.out.println("Got size " + size + " (orig " + sizeOrig + ")");
@@ -101,27 +102,27 @@ public class DXGLFramebufferD3D12 {
 		PointerByReference allocBuf = new PointerByReference();
 		COMUtils.checkRC(dxDevice.CreateCommandAllocator(new WinDef.UINT(D3D12GraphicsCommandList.D3D12_COMMAND_LIST_TYPE_DIRECT),
 			new Guid.REFIID(D3D12CommandAllocator.IID_ID3D12CommandAllocator), allocBuf));
-		allocator = new D3D12CommandAllocator(allocBuf.getValue());
+		dxCommandAllocator = new D3D12CommandAllocator(allocBuf.getValue());
 		// Create command lists for claiming the backbuffer
 		{
 			PointerByReference listBuf = new PointerByReference();
 			COMUtils.checkRC(dxDevice.CreateCommandList(new WinDef.UINT(0),
-				new WinDef.UINT(D3D12GraphicsCommandList.D3D12_COMMAND_LIST_TYPE_DIRECT), allocator, Pointer.NULL,
+				new WinDef.UINT(D3D12GraphicsCommandList.D3D12_COMMAND_LIST_TYPE_DIRECT), dxCommandAllocator, Pointer.NULL,
 				new Guid.REFIID(D3D12GraphicsCommandList.IID_ID3D12GraphicsCommandList), listBuf));
-			commandListTransitionToPresent = new D3D12GraphicsCommandList(listBuf.getValue());
-			commandListTransitionToPresent.ResourceBarrier(new D3D12ResourceBarrier[]{barrierTransitionToPresent});
-			COMUtils.checkRC(commandListTransitionToPresent.Close());
-			commandListTransitionToPresentArr = new D3D12GraphicsCommandList[] {commandListTransitionToPresent};
+			dxCommandTransitionToPresent = new D3D12GraphicsCommandList(listBuf.getValue());
+			dxCommandTransitionToPresent.ResourceBarrier(new D3D12ResourceBarrier[]{barrierTransitionToPresent});
+			COMUtils.checkRC(dxCommandTransitionToPresent.Close());
+			dxCommandTransitionToPresentArr = new D3D12GraphicsCommandList[] {dxCommandTransitionToPresent};
 		}
 		{
 			PointerByReference listBuf = new PointerByReference();
 			COMUtils.checkRC(dxDevice.CreateCommandList(new WinDef.UINT(0),
-				new WinDef.UINT(D3D12GraphicsCommandList.D3D12_COMMAND_LIST_TYPE_DIRECT), allocator, Pointer.NULL,
+				new WinDef.UINT(D3D12GraphicsCommandList.D3D12_COMMAND_LIST_TYPE_DIRECT), dxCommandAllocator, Pointer.NULL,
 				new Guid.REFIID(D3D12GraphicsCommandList.IID_ID3D12GraphicsCommandList), listBuf));
-			commandListTransitionToRenderTarget = new D3D12GraphicsCommandList(listBuf.getValue());
-			commandListTransitionToRenderTarget.ResourceBarrier(new D3D12ResourceBarrier[]{barrierTransitionToRenderTarget});
-			COMUtils.checkRC(commandListTransitionToRenderTarget.Close());
-			commandListTransitionToRenderTargetArr = new D3D12GraphicsCommandList[] {commandListTransitionToRenderTarget};
+			dxCommandTransitionToRenderTarget = new D3D12GraphicsCommandList(listBuf.getValue());
+			dxCommandTransitionToRenderTarget.ResourceBarrier(new D3D12ResourceBarrier[]{barrierTransitionToRenderTarget});
+			COMUtils.checkRC(dxCommandTransitionToRenderTarget.Close());
+			dxCommandTransitionToRenderTargetArr = new D3D12GraphicsCommandList[] {dxCommandTransitionToRenderTarget};
 		}
 
 		this.dxCommandQueue = dxCommandQueue;
@@ -133,9 +134,9 @@ public class DXGLFramebufferD3D12 {
 		EXTMemoryObject.glDeleteMemoryObjectsEXT(glMemoryObject);
 		// TODO: clean up shared handle?
 		dxResource.Release();
-		commandListTransitionToPresent.Release();
-		commandListTransitionToRenderTarget.Release();
-		allocator.Release();
+		dxCommandTransitionToPresent.Release();
+		dxCommandTransitionToRenderTarget.Release();
+		dxCommandAllocator.Release();
 		//WGLNVDXInterop.wglDXUnregisterObjectNV(d3dDeviceGl, d3dTargets.get());
 		//d3dTargets.flip();
 	}
@@ -144,7 +145,7 @@ public class DXGLFramebufferD3D12 {
 
 	public void bind() {
 		// D3D: lock backbuffer then signal fence (in queue)
-		dxCommandQueue.ExecuteCommandLists(commandListTransitionToRenderTargetArr);
+		dxCommandQueue.ExecuteCommandLists(dxCommandTransitionToRenderTargetArr);
 		COMUtils.checkRC(dxCommandQueue.Signal(dxFence, ++fenceValue));
 
 		// OpenGL: wait for semaphore (server-side), bind framebuffer
@@ -164,7 +165,7 @@ public class DXGLFramebufferD3D12 {
 
 		// D3D: wait for fence then unlock backbuffer
 		COMUtils.checkRC(dxCommandQueue.Wait(dxFence, fenceValue));
-		dxCommandQueue.ExecuteCommandLists(commandListTransitionToPresentArr);
+		dxCommandQueue.ExecuteCommandLists(dxCommandTransitionToPresentArr);
 
 		// Give GL a hint that it should do some work (as we're not using swapbuffers)
 		GL32C.glFlush();
