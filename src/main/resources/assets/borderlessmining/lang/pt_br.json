@@ -1,0 +1,22 @@
+{
+    "text.borderlessmining.videomodename": "Janela sem Brdas",
+    "config.borderlessmining.title": "Borderless Mining Configuração",
+    "config.borderlessmining.general": "Geral",
+    "config.borderlessmining.general.enabled": "Tela cheia sem Bordas",
+    "config.borderlessmining.general.enabled.tooltip": "Muda para uma janela de tela cheia sem bordas quando a tela cheia está ativada",
+    "config.borderlessmining.general.videomodeoption": "Opção de resolução de tela cheia",
+    "config.borderlessmining.general.videomodeoption.tooltip": "Adiciona uma opção ao controle deslizante Fullscreen Resolution que habilita o mod",
+    "config.borderlessmining.general.forcemonitor": "Monitor",
+    "config.borderlessmining.general.forcemonitor.current": "Atual",
+    "config.borderlessmining.general.enabledmac": "Habilitar no macOS",
+    "config.borderlessmining.general.enabledmac.tooltip": "Desativado por padrão no macOS, pois possui melhor suporte nativo para tela cheia; esta opção não faz nada em outros sistemas",
+    "config.borderlessmining.dimensions": "Dimensões",
+    "config.borderlessmining.dimensions.enabled": "Usar dimensão personalizadas",
+    "config.borderlessmining.dimensions.monitorcoordinates": "Usar coordenadas relativas ao monitor",
+    "config.borderlessmining.dimensions.monitorcoordinates.tooltip": "Use coordenadas relativas ao monitor, em vez de absolutas",
+    "config.borderlessmining.dimensions.x": "Coordenada X",
+    "config.borderlessmining.dimensions.y": "Coordenada Y",
+    "config.borderlessmining.dimensions.width": "Largura",
+    "config.borderlessmining.dimensions.height": "Altura"
+  }
+  
