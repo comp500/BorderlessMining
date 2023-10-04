@@ -244,11 +244,6 @@ public abstract class ConfigScreen extends Screen {
 		}
 
 		@Override
-		public void tick() {
-			textField.tick();
-		}
-
-		@Override
 		public Style getHoveredStyle(int mouseX, int mouseY) {
 			int max = this.x + textWidth;
 			if (mouseX >= this.x && mouseX <= max) {
