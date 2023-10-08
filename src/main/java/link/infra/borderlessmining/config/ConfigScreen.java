@@ -49,12 +49,6 @@ public abstract class ConfigScreen extends Screen {
 			super(minecraftClient, width, height, top, bottom, itemHeight);
 		}
 
-		public void tick() {
-			for (ConfigListEntry entry : this.children()) {
-				entry.tick();
-			}
-		}
-
 		@Override
 		public int addEntry(ConfigListEntry entry) {
 			return super.addEntry(entry);
@@ -103,18 +97,9 @@ public abstract class ConfigScreen extends Screen {
 			return buttons;
 		}
 
-		public void tick() {
-			// Stub, buttons don't tick
-		}
-
 		public Style getHoveredStyle(int mouseX, int mouseY) {
 			return null;
 		}
-	}
-
-	@Override
-	public void tick() {
-		entries.tick();
 	}
 
 	@Override
@@ -241,11 +226,6 @@ public abstract class ConfigScreen extends Screen {
 					builder.put(NarrationPart.TITLE, getNarrationMessage()); // Use the narration message which includes the description
 				}
 			};
-		}
-
-		@Override
-		public void tick() {
-			textField.tick();
 		}
 
 		@Override
