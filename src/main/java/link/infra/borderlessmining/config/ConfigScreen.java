@@ -34,7 +34,7 @@ public abstract class ConfigScreen extends Screen {
 
 	@Override
 	protected final void init() {
-		entries = new ConfigListWidget(client, width, height, 32, height - 32, 25);
+		entries = new ConfigListWidget(client, width, height - 64, 32, 25);
 		addElements();
 		addDrawableChild(entries);
 		addDrawableChild(ButtonWidget.builder(ScreenTexts.DONE, (button) -> {save(); client.setScreen(parent);})
@@ -45,8 +45,8 @@ public abstract class ConfigScreen extends Screen {
 	}
 
 	private static class ConfigListWidget extends ElementListWidget<ConfigListEntry> {
-		public ConfigListWidget(MinecraftClient minecraftClient, int width, int height, int top, int bottom, int itemHeight) {
-			super(minecraftClient, width, height, top, bottom, itemHeight);
+		public ConfigListWidget(MinecraftClient minecraftClient, int width, int height, int y, int itemHeight) {
+			super(minecraftClient, width, height, y, itemHeight);
 		}
 
 		@Override
