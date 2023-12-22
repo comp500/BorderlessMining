@@ -119,6 +119,11 @@ public abstract class ConfigScreen extends Screen {
 		drawContext.drawCenteredTextWithShadow(this.textRenderer, this.title, this.width / 2, 10, 16777215);
 	}
 
+	@Override
+	public void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+		this.renderBackgroundTexture(context);
+	}
+
 	public abstract void addElements();
 	// Builder methods - should be called in the method you should override
 
