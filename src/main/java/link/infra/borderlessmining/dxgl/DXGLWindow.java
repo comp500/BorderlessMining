@@ -16,8 +16,12 @@ import net.minecraft.client.util.Window;
 import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWNativeWin32;
+import org.lwjgl.opengl.EXTMemoryObject;
+import org.lwjgl.opengl.EXTMemoryObjectWin32;
 import org.lwjgl.opengl.GL32C;
+import org.lwjgl.system.MemoryStack;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,13 +51,6 @@ public class DXGLWindow {
 		// Reset hints; create window with no API
 		GLFW.glfwDefaultWindowHints();
 		GLFW.glfwWindowHint(GLFW.GLFW_CLIENT_API, GLFW.GLFW_NO_API);
-		// TODO: check what these do! (un-inline)
-		GLFW.glfwWindowHint(139265, 196609);
-		GLFW.glfwWindowHint(139275, 221185);
-		GLFW.glfwWindowHint(139266, 3);
-		GLFW.glfwWindowHint(139267, 2);
-		GLFW.glfwWindowHint(139272, 204801);
-		GLFW.glfwWindowHint(139270, 1);
 	}
 
 	public DXGLWindow(Window parent, DXGLWindowSettings settings) {
@@ -69,6 +66,11 @@ public class DXGLWindow {
 		}
 		if (!exts.contains("GL_EXT_memory_object")) {
 			System.out.println("GL_EXT_memory_object not supported!");
+		}
+		try (MemoryStack stack = MemoryStack.stackPush()) {
+			ByteBuffer out = stack.calloc(EXTMemoryObjectWin32.GL_LUID_SIZE_EXT);
+			EXTMemoryObject.glGetUnsignedBytevEXT(EXTMemoryObjectWin32.GL_DEVICE_LUID_EXT, out);
+			// TODO: get this out, use to init d3d
 		}
 	}
 
