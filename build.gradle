@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.2.+'
+	id 'fabric-loom' version '1.5.+'
 	id 'maven-publish'
 
 	id "com.github.breadmoirai.github-release" version "2.4.1"
@@ -42,6 +42,13 @@ group = project.maven_group
 
 repositories {
 	maven { url "https://maven.terraformersmc.com/" }
+	maven {
+		name "flashyreesesRepositoryReleases"
+		url "https://maven.flashyreese.me/releases"
+	}
+	maven {
+		url = "https://api.modrinth.com/maven"
+	}
 }
 
 dependencies {
@@ -64,6 +71,8 @@ dependencies {
 		exclude(group: "net.fabricmc.fabric-api")
 		exclude(group: "net.fabricmc.fabric-loader")
 	}
+
+	modApi "maven.modrinth:sodium:mc${project.sodium_version}"
 }
 
 loom {

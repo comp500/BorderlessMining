@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Вікно без рамки",
   "config.borderlessmining.title": "Параметри Borderless Mining",
+  "config.borderlessmining.sodium": "Вікно",
   "config.borderlessmining.general": "Загальні",
   "config.borderlessmining.general.enabled": "Повноекранний без рамки",
   "config.borderlessmining.general.enabled.tooltip": "Увімкнути повноекранне вікно без рамки при розгортанні на весь екран",

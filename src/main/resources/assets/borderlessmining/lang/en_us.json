@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Borderless Windowed",
   "config.borderlessmining.title": "Borderless Mining Configuration",
+  "config.borderlessmining.sodium": "Windowed",
   "config.borderlessmining.general": "General",
   "config.borderlessmining.general.enabled": "Borderless Fullscreen",
   "config.borderlessmining.general.enabled.tooltip": "Switches to a borderless fullscreen window when Fullscreen is turned on",

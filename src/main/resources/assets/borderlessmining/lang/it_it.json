@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Schermo intero in finestra",
   "config.borderlessmining.title": "Impostazioni Borderless Mining",
+  "config.borderlessmining.sodium": "Finestra",
   "config.borderlessmining.general": "Generali",
   "config.borderlessmining.general.enabled": "Schermo intero senza bordi",
   "config.borderlessmining.general.enabled.tooltip": "Passa a una finestra a schermo intero senza bordi quando è attiva l'opzione schermo intero",

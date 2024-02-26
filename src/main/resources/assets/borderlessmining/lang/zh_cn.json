@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "全屏无边框窗口",
   "config.borderlessmining.title": "Borderless Mining 配置",
+  "config.borderlessmining.sodium": "窗户",
   "config.borderlessmining.general": "通用",
   "config.borderlessmining.general.enabled": "全屏无边框窗口",
   "config.borderlessmining.general.enabled.tooltip": "开启全屏时切换到全屏无边框窗口",

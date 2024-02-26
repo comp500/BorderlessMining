@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Fenêtré sans bordure",
   "config.borderlessmining.title": "Configuration de Borderless Mining",
+  "config.borderlessmining.sodium": "Fenêtré",
   "config.borderlessmining.general": "Général",
   "config.borderlessmining.general.enabled": "Fenêtré sans bordure",
   "config.borderlessmining.general.enabled.tooltip": "Passe en fenêtré sans bordure quand le plein écran est activé.",

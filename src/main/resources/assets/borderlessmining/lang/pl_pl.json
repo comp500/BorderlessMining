@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Okno bez krawędzi",
   "config.borderlessmining.title": "Konfiguracja Borderless Mining",
+  "config.borderlessmining.sodium": "Okno",
   "config.borderlessmining.general": "Ogólne",
   "config.borderlessmining.general.enabled": "Pełny ekran bez krawędzi",
   "config.borderlessmining.general.enabled.tooltip": "Przełącza na pełny ekran bez krawędzi, gdy pełny ekran jest włączony",
