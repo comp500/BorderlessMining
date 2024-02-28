@@ -43,10 +43,6 @@ group = project.maven_group
 repositories {
 	maven { url "https://maven.terraformersmc.com/" }
 	maven {
-		name "flashyreesesRepositoryReleases"
-		url "https://maven.flashyreese.me/releases"
-	}
-	maven {
 		url = "https://api.modrinth.com/maven"
 	}
 }
