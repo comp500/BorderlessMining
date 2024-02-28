@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Kenarsız Pencere Modu",
   "config.borderlessmining.title": "Borderless Mining Ayarları",
+  "config.borderlessmining.sodium": "Pencere",
   "config.borderlessmining.general": "Genel",
   "config.borderlessmining.general.enabled": "Kenarsız Tam Ekran",
   "config.borderlessmining.general.enabled.tooltip": "Oyun tam ekrandayken, kenarsız pencere modu olarak değiştirir",

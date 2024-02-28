@@ -1,6 +1,7 @@
 {
     "text.borderlessmining.videomodename": "Janela sem Brdas",
     "config.borderlessmining.title": "Borderless Mining Configuração",
+    "config.borderlessmining.sodium": "Janela",
     "config.borderlessmining.general": "Geral",
     "config.borderlessmining.general.enabled": "Tela cheia sem Bordas",
     "config.borderlessmining.general.enabled.tooltip": "Muda para uma janela de tela cheia sem bordas quando a tela cheia está ativada",

@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "無邊框視窗",
   "config.borderlessmining.title": "無邊框挖礦設定",
+  "config.borderlessmining.sodium": "窗戶",
   "config.borderlessmining.general": "一般",
   "config.borderlessmining.general.enabled": "無邊框全螢幕",
   "config.borderlessmining.general.enabled.tooltip": "當開啟全螢幕時切換成無邊框全螢幕",

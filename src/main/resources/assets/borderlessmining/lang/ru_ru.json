@@ -1,6 +1,7 @@
 {
   "text.borderlessmining.videomodename": "Безрамочный режим",
   "config.borderlessmining.title": "Настройки Borderless Mining",
+  "config.borderlessmining.sodium": "Окно",
   "config.borderlessmining.general": "Основные",
   "config.borderlessmining.general.enabled": "Безрамочный полноэкранный режим",
   "config.borderlessmining.general.enabled.tooltip": "Переключение в режим безрамочного окна при разворачивании на полный экран",
