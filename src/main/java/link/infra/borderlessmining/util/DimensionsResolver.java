@@ -22,6 +22,13 @@ public class DimensionsResolver {
 	public int width;
 	public int height;
 
+	/**
+	 * Resolve the window dimensions based on configuration settings and monitor information.
+	 *
+	 * @param  window   the window to resolve dimensions for
+	 * @param  tracker  the monitor tracker to obtain monitor and video mode information
+	 * @return          true if the resolution was successful, false otherwise
+	 */
 	public boolean resolve(Window window, MonitorTracker tracker) {
 		if (ConfigHandler.getInstance().customWindowDimensions != null &&
 			ConfigHandler.getInstance().customWindowDimensions.enabled &&
